@@ -1,0 +1,6 @@
+[core]
+    remote = azure
+    autostage = true
+['remote "azure"']
+    url = azure://oakhack-dvc
+    account_name = oakhacksa

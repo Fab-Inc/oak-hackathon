@@ -1,10 +1,8 @@
-# fab-oak-hackathon
+# Fab Inc Oak National API Hackathon
 
 <a target="_blank" href="https://cookiecutter-data-science.drivendata.org/">
     <img src="https://img.shields.io/badge/CCDS-Project%20template-328F97?logo=cookiecutter" />
 </a>
-
-Oak National API Hackathon
 
 ## Project Organization
 
@@ -45,7 +43,6 @@ Oak National API Hackathon
 
 --------
 
-# Fab Inc Oak National API Hackathon
 
 This repo loosely follows the [Cookie Cutter Data Science](https://cookiecutter-data-science.drivendata.org/) (CCDS) template, but makes use of [pixi](https://pixi.sh) for environment management and [DVC](https://dvc.org/) for data version control. More details of the opinions behinds CCDS are available [here](https://cookiecutter-data-science.drivendata.org/opinions/).
 
@@ -61,4 +58,10 @@ For VSCode you might need to install the [pixi extension](https://marketplace.vi
 
 ## DVC for data
 
+We use [DVC](https://dvc.org/) in this project to track version controlled data (e.g. generated embeddings etc. ). This will be installed as part of the pixi environment. To set up you might want to run [`dvc install`](https://dvc.org/doc/command-reference/install) which installs git-hooks to automate DVC operations after git operations. You will also need to configure the `access_key` for the Azure storage (make sure this is configured with `--local` option as below to avoid the key being added to version control)
 
+- `pixi shell` : `# activate the pixi environment`
+- `dvc remote modify --local azure account_key <key>`
+- `dvc install` : `# install git hooks to automatically synchronise dvc and git`
+
+You can add a new data file or folder to be tracked with `dvc add`. This adds the file to `.gitignore` and adds a stub `.dvc` pointer file that gets added to git.

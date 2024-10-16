@@ -1,6 +1,5 @@
 # project stuff
 .env
-data/
 
 # python stuff
 __pycache__/
