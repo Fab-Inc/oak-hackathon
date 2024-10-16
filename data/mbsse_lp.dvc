@@ -1,0 +1,6 @@
+outs:
+- md5: f5b590e384efb31b6d33a7aef0f2a093.dir
+  size: 7672509
+  nfiles: 2
+  hash: md5
+  path: mbsse_lp
