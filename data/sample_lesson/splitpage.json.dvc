@@ -1,0 +1,5 @@
+outs:
+- md5: e773a33d732bc7405d38aedb61eeb3e1
+  size: 138971
+  hash: md5
+  path: splitpage.json
