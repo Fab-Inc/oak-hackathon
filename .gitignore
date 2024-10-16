@@ -10,3 +10,7 @@ __pycache__/
 # pixi stuff
 .pixi
 *.egg-info
+
+# pixi environments
+.pixi
+*.egg-info
