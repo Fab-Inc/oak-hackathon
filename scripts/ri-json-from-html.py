@@ -1,5 +1,5 @@
 # %%
-from oakhack.config import PROJ_ROOT, DATA_DIR
+from oakhack import PROJ_ROOT, DATA_DIR
 from bs4 import BeautifulSoup
 import json
 DATA_DIR = DATA_DIR / "sample_lesson"
