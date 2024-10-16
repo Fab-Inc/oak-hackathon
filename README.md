@@ -52,7 +52,11 @@ Put scripts, notebooks and interactive work in [scripts/](scripts), with your in
 
 Make sure you install the latest version of [pixi](https://pixi.sh) (at least 0.32.1). On Mac you can install this with [Homebrew](https://brew.sh/).
 
-Running `pixi shell` inside the project folder should recreate the environment precisely, including the `dvc` executbale. 
+Running `pixi shell` inside the project folder should recreate the environment precisely, including the `dvc` executable.
+
+The first time you enter your pixi environment you will need to manually install the project package (in editable mode):
+
+- `pip install -e .`
 
 For VSCode you might need to install the [pixi extension](https://marketplace.visualstudio.com/items?itemName=jjjermiah.pixi-vscode) to be able to chose the project's Python environment (in `.pixi/` in the project folder).
 

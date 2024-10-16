@@ -32,7 +32,6 @@ channels = ["conda-forge"]
 platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
 
 [tool.pixi.pypi-dependencies]
-oakhack = { path = ".", editable = true }
 
 [tool.pixi.tasks]
 
