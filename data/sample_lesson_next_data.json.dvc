@@ -1,0 +1,5 @@
+outs:
+- md5: 2f5150a1c41c56cc53275f6dd2d756d0
+  size: 54902
+  hash: md5
+  path: sample_lesson_next_data.json
