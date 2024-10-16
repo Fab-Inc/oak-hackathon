@@ -1,0 +1,13 @@
+# project stuff
+.env
+data/
+
+# python stuff
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# pixi stuff
+.pixi
+*.egg-info
