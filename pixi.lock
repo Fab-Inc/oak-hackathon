@@ -9962,7 +9962,7 @@ packages:
   name: oakhack
   version: 0.0.1
   path: .
-  sha256: 4f0f725d38d693eaea1b8fda4dcedb573782abf598fca4847613391759aab439
+  sha256: d8b5d5d17620973f627152cba7dc0d16852c3286022ea885ace6b3ff17b4124e
   requires_python: ~=3.12
   editable: true
 - kind: conda
