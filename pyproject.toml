@@ -27,6 +27,32 @@ exclude = '''
 )/
 '''
 
-[tool.ruff.lint.isort]
-known_first_party = ["hackathon"]
-force_sort_within_sections = true
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
+
+[tool.pixi.pypi-dependencies]
+oakhack = { path = ".", editable = true }
+
+[tool.pixi.tasks]
+
+[tool.pixi.dependencies]
+python = "3.12.*"
+black = ">=24.10.0,<25"
+flake8 = ">=7.1.1,<8"
+isort = ">=5.13.2,<6"
+loguru = ">=0.7.2,<0.8"
+pip = ">=24.2,<25"
+python-dotenv = ">=1.0.1,<2"
+tqdm = ">=4.66.5,<5"
+typer = ">=0.12.5,<0.13"
+pydantic = ">=2.9.2,<3"
+numpy = ">=2.1.2,<3"
+scipy = ">=1.14.1,<2"
+pandas = ">=2.2.3,<3"
+polars = ">=1.9.0,<2"
+scikit-learn = ">=1.5.2,<2"
+matplotlib = ">=3.9.2,<4"
+seaborn = ">=0.13.2,<0.14"
+plotly = ">=5.24.1,<6"
+dvc = ">=3.55.2,<4"
