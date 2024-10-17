@@ -65,6 +65,19 @@ with zf.ZipFile(oak_json_file) as zip:
                         "pageProps"
                     ]["curriculumData"]
 
+#%%
+def flatten(xss):
+    return [x for xs in xss for x in xs]
+
+keystages = set(x["keyStageSlug"] for x in programmes.values())
+subjects = set(x["subjectSlug"] for x in programmes.values())
+exam_boards = set(x["examBoardSlug"] for x in programmes.values())
+tiers = set(x["tierSlug"] for x in programmes.values())
+phases = set(x["phase"] for x in programmes.values()) 
+themes = set(flatten([[x["themeSlug"] for x in p["learningThemes"]] for p in programmes.values()]))
+subject_categories = set(flatten([[x["slug"] for x in p["subjectCategories"]] for p in programmes.values()]))
+years = set(flatten([[x["year"] for x in p["yearGroups"]] for p in programmes.values()]))
+
 # %%
 with gzip.open(mbsse_lp_file) as f:
     mbsse_lp_data = json.load(f)
