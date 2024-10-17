@@ -6,12 +6,58 @@ from dotenv import load_dotenv
 
 load_dotenv(override=True)
 
+from fuzzywuzzy import fuzz
 from fdllm import get_caller
 from fdllm.extensions import general_query
 import numpy as np
 
 from oakhack import DATA_DIR
 
+
+def search_lp(lp, fuzzy_query={}, query={}, fuzzy_threshold=80):
+    def simfun(a, b, ignorecase=True, fuzzy=False):
+        if fuzzy:
+            if isinstance(a, str) and isinstance(b, str):
+                if ignorecase:
+                    a = a.lower()
+                    b = b.lower()
+                return fuzz.partial_ratio(a, b) >= fuzzy_threshold
+            else:
+                raise ValueError("Both a and b must be str for fuzzy query")
+        elif isinstance(a, str) and isinstance(b, str):
+            return (a == b)
+        elif isinstance(a, (int, float)) and isinstance(b, (int, float)):
+            return (a == b)
+        elif isinstance(a, list):
+            return max(simfun(a_, b, ignorecase) for a_ in a)
+        elif isinstance(b, list):
+            return max(simfun(a, b_, ignorecase) for b_ in b)
+        else:
+            raise ValueError(
+                "Both a and b must be str or float or int"
+                " and both must be of the same type"
+            )
+
+    for plan in lpgen(lp):
+        keep = False
+        for key, val in query.items():
+            if key in plan and simfun(val, plan[key], fuzzy=False):
+                keep = True
+                break
+        for key, val in fuzzy_query.items():
+            if key in plan and simfun(val, plan[key], fuzzy=True):
+                keep = True
+                break
+        if keep:
+            yield plan
+
+
+def lpgen(lp):
+    for fl in lp:
+        for plan in fl["plans"]:
+            if plan["body_format"] is not None:
+                yield {**plan, **fl["file_meta"]}
+                
 
 def lp_sampler(lpdata, size=None, rng=None):
     if rng is None:
