@@ -1,0 +1,5 @@
+outs:
+- md5: 4ffe0411ae447c5e383840df3b04ffe8
+  size: 1929
+  hash: md5
+  path: ks4_desbug.json
