@@ -25,17 +25,16 @@ def search_lp(lp, fuzzy_query={}, query={}, fuzzy_threshold=80):
             else:
                 raise ValueError("Both a and b must be str for fuzzy query")
         elif isinstance(a, str) and isinstance(b, str):
-            return (a == b)
+            return a == b
         elif isinstance(a, (int, float)) and isinstance(b, (int, float)):
-            return (a == b)
+            return a == b
         elif isinstance(a, list):
             return max(simfun(a_, b, ignorecase) for a_ in a)
         elif isinstance(b, list):
             return max(simfun(a, b_, ignorecase) for b_ in b)
         else:
             raise ValueError(
-                "Both a and b must be str or float or int"
-                " and both must be of the same type"
+                "Both a and b must be str or float or int" " and both must be of the same type"
             )
 
     for plan in lpgen(lp):
@@ -57,7 +56,7 @@ def lpgen(lp):
         for plan in fl["plans"]:
             if plan["body_format"] is not None:
                 yield {**plan, **fl["file_meta"]}
-                
+
 
 def lp_sampler(lpdata, size=None, rng=None):
     if rng is None:
@@ -65,13 +64,17 @@ def lp_sampler(lpdata, size=None, rng=None):
     elif isinstance(rng, int):
         rng = np.random.default_rng(rng)
 
-    nfiles = len(lpdata)
-    filesampi = rng.choice(nfiles, size)
-    lpsamps = []
-    for filei in filesampi:
-        filedata = lpdata[filei]
-        lpsamp = rng.choice(filedata["plans"])
-        lpsamps.append(lpsamp)
+    is_flat = not isinstance(lpdata[0], list)
+    if is_flat:
+        lpsamps = rng.choice(lpdata, size).tolist()
+    else:
+        nfiles = len(lpdata)
+        filesampi = rng.choice(nfiles, size)
+        lpsamps = []
+        for filei in filesampi:
+            filedata = lpdata[filei]
+            lpsamp = rng.choice(filedata["plans"])
+            lpsamps.append(lpsamp)
 
     return lpsamps
 
@@ -86,10 +89,12 @@ with open(oaklessonfile) as f:
     oaklessondata = json.load(f)
 
 # %%
-nexamples = 20
+nexamples = 40
 seed = 83252023554
 
-sample_plans = lp_sampler(lpdata, size=nexamples, rng=seed)
+sample_plans = lp_sampler(
+    list(search_lp(lpdata, query={"Class/Level": ["JSS 1", "JSS 2", "JSS 3"]})), size=nexamples, rng=seed
+)
 
 print(sample_plans)
 
@@ -106,7 +111,7 @@ jsonout = {
             "Lesson Title": None,
             "Theme": None,
             "Lesson Number": None,
-            "Class/Level": "Class 10",
+            "Class/Level": "JSS 3",
             "Time": "45 minutes",
             "Body": {
                 "Learning Outcomes": {
