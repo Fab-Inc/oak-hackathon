@@ -1,0 +1,5 @@
+outs:
+- md5: 78c23681eb098a63a1e7c40874a69c89
+  size: 3498089
+  hash: md5
+  path: mbsseKP_files_lessonplans_parsed_cleaned.json.gz
