@@ -67,12 +67,13 @@ with zf.ZipFile(oak_json_file) as zip:
                     ]["curriculumData"]
 
 
-#%%
+# %%
 # lessons flat
 def flatten(xss):
     return [x for xs in xss for x in xs]
 
-lessons_l = flatten([[l for l in us.values()] for us in lessons_by_unit.values() ])
+
+lessons_l = flatten([[l for l in us.values()] for us in lessons_by_unit.values()])
 # %%
 
 keystages = set(x["keyStageSlug"] for x in programmes.values())
@@ -111,6 +112,8 @@ df_data = {}
 for col in column_keys:
     df_data[col] = [l[col] for l in lessons_l]
 
+df_data["json"] = [json.dumps(l) for l in lessons_l]
+df_data["unitKey"] = [l["programmeSlug"] + "/" + l["unitSlug"] for l in lessons_l]
 lessons_df = pd.DataFrame(df_data)
 # %%
 with gzip.open(mbsse_lp_file) as f:
