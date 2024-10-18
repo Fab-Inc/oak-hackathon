@@ -2,6 +2,7 @@
 from oakhack import PROJ_ROOT, DATA_DIR
 import zipfile as zf
 import itertools as it
+import pandas as pd
 import gzip
 import json
 
@@ -65,19 +66,52 @@ with zf.ZipFile(oak_json_file) as zip:
                         "pageProps"
                     ]["curriculumData"]
 
+
 #%%
+# lessons flat
 def flatten(xss):
     return [x for xs in xss for x in xs]
+
+lessons_l = flatten([[l for l in us.values()] for us in lessons_by_unit.values() ])
+# %%
 
 keystages = set(x["keyStageSlug"] for x in programmes.values())
 subjects = set(x["subjectSlug"] for x in programmes.values())
 exam_boards = set(x["examBoardSlug"] for x in programmes.values())
 tiers = set(x["tierSlug"] for x in programmes.values())
-phases = set(x["phase"] for x in programmes.values()) 
+phases = set(x["phase"] for x in programmes.values())
 themes = set(flatten([[x["themeSlug"] for x in p["learningThemes"]] for p in programmes.values()]))
-subject_categories = set(flatten([[x["slug"] for x in p["subjectCategories"]] for p in programmes.values()]))
+subject_categories = set(
+    flatten([[x["slug"] for x in p["subjectCategories"]] for p in programmes.values()])
+)
 years = set(flatten([[x["year"] for x in p["yearGroups"]] for p in programmes.values()]))
 
+# %%
+# lessons_df
+column_keys = [
+    "lessonSlug",
+    "lessonTitle",
+    "programmeSlug",
+    "unitSlug",
+    "keyStageSlug",
+    "tierSlug",
+    "contentGuidance",
+    "additionalMaterialUrl",
+    "worksheetUrl",
+    "presentationUrl",
+    # "transcriptSentences",
+    "videoTitle",
+    "subjectSlug",
+    # "subjectTitle",
+    # "upplementary-pdf",
+    # "supplementary-docx",
+]
+
+df_data = {}
+for col in column_keys:
+    df_data[col] = [l[col] for l in lessons_l]
+
+lessons_df = pd.DataFrame(df_data)
 # %%
 with gzip.open(mbsse_lp_file) as f:
     mbsse_lp_data = json.load(f)
