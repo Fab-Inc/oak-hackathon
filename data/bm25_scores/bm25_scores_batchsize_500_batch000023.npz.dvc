@@ -1,0 +1,5 @@
+outs:
+- md5: 04850aedffabd030fbbdef0d95bb0969
+  size: 2308742
+  hash: md5
+  path: bm25_scores_batchsize_500_batch000023.npz
