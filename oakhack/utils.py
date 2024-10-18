@@ -21,7 +21,7 @@ def flatten(xss):
 
 def load_oak_lessons(oak_json_file=DATA_DIR / "oak_json.zip"):
     with zf.ZipFile(oak_json_file) as zip:
-        
+
         # load programmes
         info = zip.infolist()
         programme_filenames = [
@@ -48,9 +48,13 @@ def load_oak_lessons(oak_json_file=DATA_DIR / "oak_json.zip"):
                     ]["curriculumData"]
 
         # load lessons
+        programm_inherit_fields = ["examBoardSlug", "subjectParent"]
+        unit_inherit_fields = ["unitStudyOrder", "yearOrder"]
         lessons_by_unit = {}
         for units in units_by_programme.values():
             for unit in units.values():
+                pj = programmes[unit["programmeSlug"]]
+                
                 unit_path = unit["programmeSlug"] + "/" + unit["unitSlug"]
                 base_path = "oak_scraped_json/" + unit_path
                 lessons_by_unit[unit_path] = {}
@@ -58,9 +62,17 @@ def load_oak_lessons(oak_json_file=DATA_DIR / "oak_json.zip"):
                 for lesson in unit["lessons"]:
                     fname = base_path + "/" + lesson["lessonSlug"] + ".json"
                     with zip.open(fname) as f:
-                        lessons_by_unit[unit_path][lesson["lessonSlug"]] = json.load(f)["props"][
-                            "pageProps"
-                        ]["curriculumData"]
+                        lbu = json.load(f)["props"]["pageProps"]["curriculumData"]
+                        for key in programm_inherit_fields:
+                            lbu[key] = pj[key]
+                        for key in unit_inherit_fields:
+                            lesson_unit = [unt[0] for unt in pj["units"] if unt[0]["slug"]==unit["unitSlug"]]
+                            if len(lesson_unit) != 1:
+                                raise ValueError("should be exactly one lesson unit")
+                            else:
+                                lesson_unit = lesson_unit[0]
+                            lbu[key] = lesson_unit[key]
+                        lessons_by_unit[unit_path][lesson["lessonSlug"]] = lbu
 
     return flatten([[l for l in us.values()] for us in lessons_by_unit.values()])
 
