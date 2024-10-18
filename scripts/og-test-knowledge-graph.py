@@ -40,17 +40,7 @@ allscores = []
 batchscores = []
 batchscores_full = []
 batchsize = 500
-i = -1
-while i < len(klp_bm25.documents):
-    i += 1
-    doc = klp_bm25.documents[i]
-    docindex = [
-        idx for idx, klp in enumerate(flat_klp) if (
-            klp["subjectSlug"] == flat_klp[i]["subjectSlug"]
-            and 
-            klp["examBoardSlug"] == flat_klp[i]["examBoardSlug"]
-        )
-    ]
+for i in range(len(klp_bm25.documents)):
     ### check at the start of each batch if the file exists
     if i % batchsize == 0:
         print(i)
@@ -59,21 +49,27 @@ while i < len(klp_bm25.documents):
         ### load if it does and skip batch
         if outfile.exists():
             batchscores = np.load(outfile)["a"].tolist()
-            i += batchsize - 1
-    else:
+            print(len(batchscores))
+    if len(batchscores) < batchsize:
+        doc = klp_bm25.documents[i]
+        docindex = [
+            idx for idx, klp in enumerate(flat_klp) if (
+                klp["subjectSlug"] == flat_klp[i]["subjectSlug"]
+                and 
+                klp["examBoardSlug"] == flat_klp[i]["examBoardSlug"]
+            )
+        ]
         scores = klp_bm25.get_scores(doc, docindex=docindex)
         scores_full = np.zeros(len(flat_klp))
         scores_full[docindex] = scores
         batchscores.append(scores_full)
-    if (i + 1) % batchsize == 0 or i == len(klp_bm25.documents) - 1:
+    if len(batchscores) == batchsize or i == len(klp_bm25.documents) - 1:
         batchscores_arr = np.array(batchscores)
-        if i == len(klp_bm25.documents) - 1:
-            batchi = (i + 1) // batchsize
-        else:
-            batchi = i // batchsize
+        batchi = i // batchsize
+        print(batchi)
         outfile = scores_dir / f"bm25_scores_batchsize_{batchsize}_batch{batchi :06d}.npz"
         if not outfile.exists():
-            np.savez_compressed(outfile, a=batchscores_arr)
+            np.savez_compressed(outfile, a=batchscores_arr.astype(np.float32))
         allscores.append(batchscores_arr)
         batchscores = []
 
