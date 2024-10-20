@@ -1,5 +1,5 @@
 # %%
-from oakhack import PROJ_ROOT, DATA_DIR
+import oakhack as oh
 import zipfile as zf
 import itertools as it
 import pandas as pd
@@ -146,3 +146,26 @@ column_keys = [
     "questionType",
     "quizType"
 ]
+df_data = {}
+for col in column_keys:
+    df_data[col] = [q[col] for q in questions]
+
+df_data["unitKey"] = [q["programmeSlug"] + "/" + q["unitSlug"] for q in questions]
+df_data["lessonKey"] = [q["programmeSlug"] + "/" + q["unitSlug"] + "/" + q["lessonSlug"] for q in questions]
+questions_df = pd.DataFrame(df_data)
+# %%
+
+questions, questions_df = oh.extract_questions(lessons)
+query_res = [
+        questions[i] for i in questions_df.query("questionType == 'short-answer' and "
+                                                    "subjectSlug == 'physics'").index
+    ]
+# %%
+lessons, l_df = oh.load_oak_lessons_with_df()
+# %%
+query_res = [
+        lessons[i] for i in l_df.query("subjectSlug == 'english' and "
+                                       "keyStageSlug == 'ks2'").index
+    ]
+
+# %%

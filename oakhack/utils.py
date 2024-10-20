@@ -49,7 +49,7 @@ def load_oak_lessons(oak_json_file=DATA_DIR / "oak_json.zip"):
 
         # load lessons
         programm_inherit_fields = ["examBoardSlug", "subjectParent"]
-        unit_inherit_fields = ["unitStudyOrder", "yearOrder"]
+        unit_inherit_fields = ["unitStudyOrder", "yearOrder", "learningThemes"]
         lessons_by_unit = {}
         for units in units_by_programme.values():
             for unit in units.values():
@@ -79,9 +79,19 @@ def load_oak_lessons(oak_json_file=DATA_DIR / "oak_json.zip"):
     return flatten([[l for l in us.values()] for us in lessons_by_unit.values()])
 
 
-def load_oak_lessons_df(oak_json_file=DATA_DIR / "oak_json.zip", load_json=False):
+def load_oak_lessons_with_df(oak_json_file=DATA_DIR / "oak_json.zip", load_json=False):
+    """Load all Oak lessons in a flat list, with metadata fields added
+
+    Returns the flat list, and a dataframe indexed matching the list:
+    >> lessons, l_df = load_oak_lessons_with_df()
+    >> query_res = [
+           lessons[i] for i in l_df.query("subjectSlug == 'english' and "
+                                          "keyStageSlug == 'ks2'").index
+       ]
+    """
     lessons_l = load_oak_lessons(oak_json_file=oak_json_file)
-    # lessons_df
+
+    # build df of metadata
     column_keys = [
         "lessonSlug",
         "lessonTitle",
@@ -99,6 +109,11 @@ def load_oak_lessons_df(oak_json_file=DATA_DIR / "oak_json.zip", load_json=False
         # "subjectTitle",
         # "upplementary-pdf",
         # "supplementary-docx",
+        "examBoardSlug",
+        "subjectParent",
+        "unitStudyOrder", 
+        "yearOrder",
+        "learningThemes"
     ]
 
     df_data = {}
@@ -107,14 +122,18 @@ def load_oak_lessons_df(oak_json_file=DATA_DIR / "oak_json.zip", load_json=False
 
     if load_json:
         df_data["json"] = [json.dumps(l) for l in lessons_l]
+
     df_data["unitKey"] = [l["programmeSlug"] + "/" + l["unitSlug"] for l in lessons_l]
+    df_data["lessonKey"] = [
+        l["programmeSlug"] + "/" + l["unitSlug"] + "/" + l["lessonSlug"] for l in lessons_l
+    ]
     lessons_df = pd.DataFrame(df_data)
 
-    return lessons_df
+    return lessons_l, lessons_df
 
 
 def extract_questions(lessons):
-    """Extract a flat list of all available questoins, with metadata fields added
+    """Extract a flat list of all available questions, with metadata fields added
 
     Returns the flat list, and a dataframe indexed matching the list:
     >> questions, questions_df = extract_questions(lesssons)
@@ -124,6 +143,7 @@ def extract_questions(lessons):
         ]
     """
 
+    # extract questions and add some metadata from the parent lesson
     questions = []
     for lesson in lessons:
         for quiztype in ["starter", "exit"]:
@@ -143,7 +163,8 @@ def extract_questions(lessons):
                 ]:
                     question[k] = lesson[k]
                 questions.append(question)
-    f_data = {}
+
+    # build dataframe of question metadata
     column_keys = [
         "lessonSlug",
         "programmeSlug",
