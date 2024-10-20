@@ -77,7 +77,7 @@ def load_oak_lessons(oak_json_file=DATA_DIR / "oak_json.zip"):
     return flatten([[l for l in us.values()] for us in lessons_by_unit.values()])
 
 
-def load_oak_lessons_df(oak_json_file=DATA_DIR / "oak_json.zip"):
+def load_oak_lessons_df(oak_json_file=DATA_DIR / "oak_json.zip", load_json=False):
     lessons_l = load_oak_lessons(oak_json_file=oak_json_file)
     # lessons_df
     column_keys = [
@@ -103,7 +103,8 @@ def load_oak_lessons_df(oak_json_file=DATA_DIR / "oak_json.zip"):
     for col in column_keys:
         df_data[col] = [l[col] for l in lessons_l]
 
-    df_data["json"] = [json.dumps(l) for l in lessons_l]
+    if load_json:
+        df_data["json"] = [json.dumps(l) for l in lessons_l]
     df_data["unitKey"] = [l["programmeSlug"] + "/" + l["unitSlug"] for l in lessons_l]
     lessons_df = pd.DataFrame(df_data)
 
