@@ -19,7 +19,7 @@ def flatten(xss):
     return [x for xs in xss for x in xs]
 
 
-def load_oak_lessons(oak_json_file=DATA_DIR / "oak_json.zip"):
+def load_oak_programmes_units(oak_json_file=DATA_DIR / "oak_json.zip"):
     with zf.ZipFile(oak_json_file) as zip:
 
         # load programmes
@@ -46,6 +46,15 @@ def load_oak_lessons(oak_json_file=DATA_DIR / "oak_json.zip"):
                     units_by_programme[pslug][unit[0]["slug"]] = json.load(f)["props"][
                         "pageProps"
                     ]["curriculumData"]
+
+    return programmes, units_by_programme
+
+
+def load_oak_lessons(oak_json_file=DATA_DIR / "oak_json.zip"):
+
+    programmes, units_by_programme = load_oak_programmes_units(oak_json_file)
+
+    with zf.ZipFile(oak_json_file) as zip:
 
         # load lessons
         programm_inherit_fields = ["examBoardSlug", "subjectParent"]
@@ -111,9 +120,9 @@ def load_oak_lessons_with_df(oak_json_file=DATA_DIR / "oak_json.zip", load_json=
         # "supplementary-docx",
         "examBoardSlug",
         "subjectParent",
-        "unitStudyOrder", 
+        "unitStudyOrder",
         "yearOrder",
-        "learningThemes"
+        "learningThemes",
     ]
 
     df_data = {}

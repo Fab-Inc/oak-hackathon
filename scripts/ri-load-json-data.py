@@ -6,6 +6,7 @@ import pandas as pd
 import gzip
 import json
 
+from oakhack import DATA_DIR
 mbsse_lp_file = DATA_DIR / "mbsse_lp/mbsseKP_files_lessonplans_parsed.json.gz"
 oak_json_file = DATA_DIR / "oak_json.zip"
 
@@ -168,4 +169,10 @@ query_res = [
                                        "keyStageSlug == 'ks2'").index
     ]
 
+# %%
+lessons = oh.load_oak_lessons()
+#%%
+lessons, l_df = oh.load_oak_lessons_with_df()
+# %%
+p, un = oh.load_oak_programmes_units()
 # %%
