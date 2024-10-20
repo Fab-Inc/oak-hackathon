@@ -88,7 +88,7 @@ def load_oak_lessons(oak_json_file=DATA_DIR / "oak_json.zip"):
     return flatten([[l for l in us.values()] for us in lessons_by_unit.values()])
 
 
-def load_oak_lessons_with_df(oak_json_file=DATA_DIR / "oak_json.zip", load_json=False):
+def load_oak_lessons_with_df(oak_json_file=DATA_DIR / "oak_json.zip"):
     """Load all Oak lessons in a flat list, with metadata fields added
 
     Returns the flat list, and a dataframe indexed matching the list:
@@ -128,9 +128,6 @@ def load_oak_lessons_with_df(oak_json_file=DATA_DIR / "oak_json.zip", load_json=
     df_data = {}
     for col in column_keys:
         df_data[col] = [l[col] for l in lessons_l]
-
-    if load_json:
-        df_data["json"] = [json.dumps(l) for l in lessons_l]
 
     df_data["unitKey"] = [l["programmeSlug"] + "/" + l["unitSlug"] for l in lessons_l]
     df_data["lessonKey"] = [
