@@ -4,18 +4,7 @@ import itertools as it
 from pathlib import Path
 import pandas as pd
 
-# Paths
-PROJ_ROOT = Path(__file__).resolve().parents[1]
-# logger.info(f"PROJ_ROOT path is: {PROJ_ROOT}")
-
-DATA_DIR = PROJ_ROOT / "data"
-# RAW_DATA_DIR = DATA_DIR / "raw"
-# PROCESSED_DATA_DIR = DATA_DIR / "processed"
-
-# MODELS_DIR = PROJ_ROOT / "models"
-
-# REPORTS_DIR = PROJ_ROOT / "reports"
-# FIGURES_DIR = REPORTS_DIR / "figures"
+from .constants import DATA_DIR
 
 def get_programmes_by_ks(programmes, ks):
     return {k: v for k, v in programmes.items() if v["keyStageSlug"] == f"ks{ks}"}
@@ -64,7 +53,7 @@ def load_oak_lessons(oak_json_file=DATA_DIR / "oak_json.zip"):
         for units in units_by_programme.values():
             for unit in units.values():
                 pj = programmes[unit["programmeSlug"]]
-                
+
                 unit_path = unit["programmeSlug"] + "/" + unit["unitSlug"]
                 base_path = "oak_scraped_json/" + unit_path
                 lessons_by_unit[unit_path] = {}
@@ -76,7 +65,9 @@ def load_oak_lessons(oak_json_file=DATA_DIR / "oak_json.zip"):
                         for key in programm_inherit_fields:
                             lbu[key] = pj[key]
                         for key in unit_inherit_fields:
-                            lesson_unit = [unt[0] for unt in pj["units"] if unt[0]["slug"]==unit["unitSlug"]]
+                            lesson_unit = [
+                                unt[0] for unt in pj["units"] if unt[0]["slug"] == unit["unitSlug"]
+                            ]
                             if len(lesson_unit) != 1:
                                 raise ValueError("should be exactly one lesson unit")
                             else:

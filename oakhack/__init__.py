@@ -3,15 +3,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 from loguru import logger
 
-from .utils import (
-    get_programmes_by_ks,
-    get_programmes_by_subject,
-    load_oak_lessons,
-    load_oak_lessons_df,
-    DATA_DIR,
-    PROJ_ROOT
-)
-# from .embeddings import BM25, get_embeddings
+from .constants import *
+from .utils import *
+from .embeddings import *
 
 # Load environment variables from .env file if it exists
 load_dotenv()
