@@ -6,6 +6,7 @@ import pandas as pd
 
 from .constants import DATA_DIR
 
+
 def get_programmes_by_ks(programmes, ks):
     return {k: v for k, v in programmes.items() if v["keyStageSlug"] == f"ks{ks}"}
 
@@ -110,3 +111,60 @@ def load_oak_lessons_df(oak_json_file=DATA_DIR / "oak_json.zip", load_json=False
     lessons_df = pd.DataFrame(df_data)
 
     return lessons_df
+
+
+def extract_questions(lessons):
+    """Extract a flat list of all available questoins, with metadata fields added
+
+    Returns the flat list, and a dataframe indexed matching the list:
+    >> questions, questions_df = extract_questions(lesssons)
+    >> query_res = [
+            questions[i] for i in questions_df.query("questionType == 'short-answer' and "
+                                                      "subjectSlug == 'physics'").index
+        ]
+    """
+
+    questions = []
+    for lesson in lessons:
+        for quiztype in ["starter", "exit"]:
+            quiz_questions = lesson[quiztype + "Quiz"]
+            if quiz_questions is None:
+                continue
+            for question in lesson[quiztype + "Quiz"]:
+                question["quizType"] = quiztype
+                for k in [
+                    "programmeSlug",
+                    "lessonSlug",
+                    "unitSlug",
+                    "tierSlug",
+                    "examBoardTitle",
+                    "subjectSlug",
+                    "keyStageSlug",
+                ]:
+                    question[k] = lesson[k]
+                questions.append(question)
+    f_data = {}
+    column_keys = [
+        "lessonSlug",
+        "programmeSlug",
+        "unitSlug",
+        "keyStageSlug",
+        "tierSlug",
+        "subjectSlug",
+        "examBoardTitle",
+        "questionId",
+        "questionUid",
+        "questionType",
+        "quizType",
+    ]
+    df_data = {}
+    for col in column_keys:
+        df_data[col] = [q[col] for q in questions]
+
+    df_data["unitKey"] = [q["programmeSlug"] + "/" + q["unitSlug"] for q in questions]
+    df_data["lessonKey"] = [
+        q["programmeSlug"] + "/" + q["unitSlug"] + "/" + q["lessonSlug"] for q in questions
+    ]
+    questions_df = pd.DataFrame(df_data)
+
+    return questions, questions_df

@@ -104,7 +104,7 @@ column_keys = [
     "videoTitle",
     "subjectSlug",
     # "subjectTitle",
-    # "upplementary-pdf",
+    # "supplementary-pdf",
     # "supplementary-docx",
 ]
 
@@ -118,3 +118,31 @@ lessons_df = pd.DataFrame(df_data)
 # %%
 with gzip.open(mbsse_lp_file) as f:
     mbsse_lp_data = json.load(f)
+
+# %%
+# Questions
+#
+from oakhack import DATA_DIR
+import oakhack as oh
+
+lessons = oh.load_oak_lessons()
+# %%
+
+# %%
+questions = oh.extract_questions(lessons)
+# %%
+
+df_data = {}
+column_keys = [
+    "lessonSlug",
+    "programmeSlug",
+    "unitSlug",
+    "keyStageSlug",
+    "tierSlug",
+    "subjectSlug",
+    "examBoardTitle",
+    "questionId",
+    "questionUid",
+    "questionType",
+    "quizType"
+]
