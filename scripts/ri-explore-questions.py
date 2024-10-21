@@ -11,6 +11,9 @@ oak_json_file = DATA_DIR / "oak_json.zip"
 programmes, units = oh.utils.load_oak_programmes_units()
 lessons, l_df = oh.utils.load_oak_lessons_with_df()
 questions, q_df = oh.utils.extract_questions(lessons)
+extracted_questions = oh.utils.extract_question_content(questions)
+q_strs = ["\n".join(q["text"]) for q in extracted_questions]
+
 
 # %%
 question_types = q_df.questionType.unique()
@@ -95,8 +98,7 @@ extracted_questions
 for question in extracted_questions:
     question["image-text"] = []
     for url in question["images"]:
-        description = "description of image"
-        # description = call_llm_to_describe_image(url)
+        description = call_llm_to_describe_image(url)
         question["image-text"].append(description)
 
 
