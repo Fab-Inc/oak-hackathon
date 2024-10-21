@@ -1,5 +1,6 @@
 from collections import Counter
 
+from tqdm import tqdm
 import numpy as np
 import tiktoken
 from openai import OpenAI
@@ -102,12 +103,18 @@ class BM25:
 
 
 def get_embeddings(
-    documents: list[list[int] | str], encoding_model="text-embedding-3-large", batch_size=2048
+    documents: list[list[int] | str],
+    encoding_model="text-embedding-3-large",
+    batch_size=2048,
+    verbose=0,
 ):
     client = OpenAI()
     embeddings = []
-    for batch_start in range(0, len(documents), batch_size):
+    batchiter = range(0, len(documents), batch_size)
+    if verbose > 0:
+        batchiter = tqdm(batchiter)
+    for batch_start in batchiter:
         batch_docs = documents[batch_start : batch_start + batch_size]
-        create_out = client.embeddings.create(batch_docs, model_name=encoding_model)
+        create_out = client.embeddings.create(input=batch_docs, model=encoding_model)
         embeddings.extend([emb.embedding for emb in create_out.data])
     return embeddings

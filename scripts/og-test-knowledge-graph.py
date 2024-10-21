@@ -5,7 +5,7 @@ import json
 import gzip
 
 from oakhack.utils import load_oak_lessons, extract_klp
-from oakhack.embeddings import BM25
+from oakhack.embeddings import BM25, get_embeddings
 from oakhack import DATA_DIR
 
 scores_dir = DATA_DIR / "bm25_scores"
@@ -74,7 +74,10 @@ for i in range(len(klp_bm25.documents)):
         loaded = False
 
 # %%
-import numpy as np
+embs = get_embeddings(klp_bm25.documents, verbose=1)
+
+# %%
+
 
 # %%
 #! %%timeit
