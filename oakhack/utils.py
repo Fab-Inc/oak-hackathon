@@ -51,6 +51,9 @@ def load_oak_programmes_units(oak_json_file=DATA_DIR / "oak_json.zip"):
 
 
 def load_oak_lessons(oak_json_file=DATA_DIR / "oak_json.zip"):
+    """Load all lessons from Oak from a zip archive of the scraped json
+    
+    Returns a flat list of all the lessons"""
 
     programmes, units_by_programme = load_oak_programmes_units(oak_json_file)
 

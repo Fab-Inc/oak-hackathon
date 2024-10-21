@@ -87,4 +87,17 @@ for question in questions:
 # %%
 extracted_questions = oh.utils.extract_question_content(questions)
 # %%
-q_strs = ["\n".join([t for t in q["text"] if t]) for q in extracted_questions)]
+q_strs = ["\n".join(q["text"]) for q in extracted_questions]
+# %%
+extracted_questions
+#%% 
+# template to describe images
+for question in extracted_questions:
+    question["image-text"] = []
+    for url in question["images"]:
+        description = "description of image"
+        # description = call_llm_to_describe_image(url)
+        question["image-text"].append(description)
+
+
+# %%
