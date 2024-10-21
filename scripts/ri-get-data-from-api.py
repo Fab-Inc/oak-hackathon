@@ -1,3 +1,14 @@
+#%%
+import oakhack as oh
+import requests
+
+base_url = "unknown"
+headers = {"Authorization": "Bearer MYREALLYLONGTOKENIGOT"}
+
+#%%
+
+endpoint = "/key-stages"
+response = requests.get(base_url+endpoint,headers=headers)
 
 # get /key-stages
 # returns: ["slug" "title"]
