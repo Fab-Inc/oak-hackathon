@@ -1,0 +1,5 @@
+outs:
+- md5: 4e00f263701a91288a16d06418b3a321
+  size: 36864128
+  hash: md5
+  path: klp_embeddings_batch_size3000_00014.npy

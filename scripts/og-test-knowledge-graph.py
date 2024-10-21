@@ -20,7 +20,12 @@ flat_klp = extract_klp(lessons)
 klp_bm25 = BM25([klp["keyLearningPoint"] for klp in flat_klp.values()])
 
 top_tokens = klp_bm25._encoding.decode_batch(
-    [[tok] for tok, _ in sorted(klp_bm25.doc_freqs.items(), key=lambda x: x[1], reverse=True)]
+    [
+        [tok]
+        for tok, _ in sorted(
+            klp_bm25.doc_freqs.items(), key=lambda x: x[1], reverse=True
+        )
+    ]
 )
 
 print(top_tokens[:10])
@@ -36,7 +41,9 @@ for i in range(len(klp_bm25.documents)):
     if i % batchsize == 0:
         print(i)
         batchi = i // batchsize
-        outfile = scores_dir / f"bm25_scores_batchsize_{batchsize}_batch{batchi :06d}.npz"
+        outfile = (
+            scores_dir / f"bm25_scores_batchsize_{batchsize}_batch{batchi :06d}.npz"
+        )
         ### load if it does and skip batch
         if outfile.exists():
             batchscores = np.load(outfile)["a"]
@@ -56,17 +63,16 @@ for i in range(len(klp_bm25.documents)):
         scores_full = np.zeros(len(flat_klp))
         scores_full[docindex] = scores
         batchscores.append(scores_full)
-    if (
-        (i + 1) % batchsize == 0
-        or i == len(klp_bm25.documents) - 1
-    ):
+    if (i + 1) % batchsize == 0 or i == len(klp_bm25.documents) - 1:
         if loaded:
             batchscores_arr = batchscores
         else:
             batchscores_arr = np.array(batchscores)
         batchi = i // batchsize
         print(batchi)
-        outfile = scores_dir / f"bm25_scores_batchsize_{batchsize}_batch{batchi :06d}.npz"
+        outfile = (
+            scores_dir / f"bm25_scores_batchsize_{batchsize}_batch{batchi :06d}.npz"
+        )
         if not outfile.exists():
             np.savez_compressed(outfile, a=batchscores_arr.astype(np.float32))
         allscores.append(batchscores_arr)
@@ -75,6 +81,16 @@ for i in range(len(klp_bm25.documents)):
 
 # %%
 embs = get_embeddings(klp_bm25.documents, verbose=1)
+
+# %%
+batch_size = 3000
+embsarr = np.array(embs, dtype=np.float32)
+for i, batch_start in enumerate(range(0, embsarr.shape[0], batch_size)):
+    outarr = embsarr[batch_start : batch_start + batch_size]
+    np.save(
+        DATA_DIR / f"embeddings/klp_embeddings_batch_size{batch_size}_{i :05d}.npy",
+        outarr,
+    )
 
 # %%
 
@@ -103,9 +119,13 @@ for term in self.documents[0]:
 
     term_freq = (docarray == term).sum(axis=1)
 
-    idf = np.log((self.doc_count - self.doc_freqs[term] + 0.5) / (self.doc_freqs[term] + 0.5) + 1)
+    idf = np.log(
+        (self.doc_count - self.doc_freqs[term] + 0.5) / (self.doc_freqs[term] + 0.5) + 1
+    )
     numerator = term_freq * (self.k1 + 1)
-    denominator = term_freq + self.k1 * (1 - self.b + self.b * (doclen / self.avg_doc_length))
+    denominator = term_freq + self.k1 * (
+        1 - self.b + self.b * (doclen / self.avg_doc_length)
+    )
     result += idf * (numerator / denominator)
 
 # %%
@@ -122,6 +142,8 @@ idf = np.log(
     ]
 )
 numerator = term_freq * (self.k1 + 1)
-denominator = term_freq + self.k1 * (1 - self.b + self.b * (doclen[None] / self.avg_doc_length))
+denominator = term_freq + self.k1 * (
+    1 - self.b + self.b * (doclen[None] / self.avg_doc_length)
+)
 
 result = (idf[:, None] * (numerator / denominator)).sum(axis=0)
