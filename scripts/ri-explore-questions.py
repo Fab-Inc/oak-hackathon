@@ -24,52 +24,64 @@ qs_by_type = {
 
 # question = questions[0]
 question = qs_by_type["explanatory-text"][0]
-q_text = []
-q_image = []
-for block in question["questionStem"]:
-    if block["type"] == "text":
-        q_text.append(block["text"])
-    if block["type"] == "image":
-        q_image.append(block["imageObject"]["url"])
 
-if question["questionType"] == "multiple-choice":
-    for answer in question["answers"]["multiple-choice"]:
-        # only keep correct answer options
-        if answer["answerIsCorrect"]:
+extracted_questions = []
+q_strs = []
+for question in questions:
+    q_text = []
+    q_image = []
+    for block in question["questionStem"]:
+        if block["type"] == "text":
+            q_text.append(block["text"])
+        if block["type"] == "image":
+            q_image.append(block["imageObject"]["url"])
+
+    if question["questionType"] == "multiple-choice":
+        if question["answers"] is not None:
+            for answer in question["answers"]["multiple-choice"]:
+                # only keep correct answer options
+                if answer["answerIsCorrect"]:
+                    for block in answer["answer"]:
+                        if block["type"] == "text":
+                            q_text.append(block["text"])
+                        elif block["type"] == "image":
+                            q_image.append(block["imageObject"]["url"])
+                        else:
+                            print(f"found multiple-choice answer block of type: {block["type"]}")
+
+    elif question["questionType"] == "order":
+        for answer in question["answers"]["order"]:
+            # add all answer options (ignore order)
             for block in answer["answer"]:
                 if block["type"] == "text":
                     q_text.append(block["text"])
                 else:
-                    print(f"found multiple-choice answer block of type: {block["type"]}")
+                    print(f"found order answer block of type: {block["type"]}")
 
-elif question["questionType"] == "order":
-    for answer in question["answers"]["order"]:
-        # add all answer options (ignore order)
-        for block in answer["answer"]:
-            if block["type"] == "text":
-                q_text.append(block["text"])
-            else:
-                print(f"found order answer block of type: {block["type"]}")
+    elif question["questionType"] == "match":
+        for answer in question["answers"]["match"]:
+            # add all answer stems and match words
+            for blocks in it.chain([answer[k] for k in ["correctChoice", "matchOption"]]):
+                for block in blocks:
+                    if block["type"] == "text":
+                        q_text.append(block["text"])
+                    else:
+                        print(f"found match answer block of type: {block["type"]}")
 
-elif question["questionType"] == "match":
-    for answer in question["answers"]["match"]:
-        # add all answer stems and match words
-        for blocks in it.chain([answer[k] for k in ["correctChoice", "matchOption"]]):
-            for block in blocks:
-                if block["type"] == "text":
-                    q_text.append(block["text"])
-                else:
-                    print(f"found match answer block of type: {block["type"]}")
+    elif question["questionType"] == "short-answer":
+        if question["answers"] is not None:
+            for answer in question["answers"]["short-answer"]:
+                for block in answer["answer"]:
+                    if block["type"] == "text":
+                        q_text.append(block["text"])
+                    else:
+                        print(f"found short-answer answer block of type: {block["type"]}")
 
-elif question["questionType"] == "short-answer":
-    for answer in question["answers"]["short-answer"]:
-        for block in answer["answer"]:
-            if block["type"] == "text":
-                q_text.append(block["text"])
-            else:
-                print(f"found short-answer answer block of type: {block["type"]}")
+    q_text.extend([question[k] for k in ["hint", "feedback"]])
 
-q_text.extend([question[k] for k in ["hint", "feedback"]])
+    q = {"text": q_text, "images": q_image}
+    extracted_questions.append(q)
+    q_strs.append("\n".join(q_text))
 
 
 # %%
