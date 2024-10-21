@@ -156,9 +156,9 @@ df_data["lessonKey"] = [q["programmeSlug"] + "/" + q["unitSlug"] + "/" + q["less
 questions_df = pd.DataFrame(df_data)
 # %%
 
-questions, questions_df = oh.extract_questions(lessons)
+questions, q_df = oh.extract_questions(lessons)
 query_res = [
-        questions[i] for i in questions_df.query("questionType == 'short-answer' and "
+        questions[i] for i in q_df.query("questionType == 'short-answer' and "
                                                     "subjectSlug == 'physics'").index
     ]
 # %%
@@ -170,9 +170,17 @@ query_res = [
     ]
 
 # %%
-lessons = oh.load_oak_lessons()
+lessons = oh.utils.load_oak_lessons()
 #%%
-lessons, l_df = oh.load_oak_lessons_with_df()
+lessons, l_df = oh.utils.load_oak_lessons_with_df()
 # %%
 p, un = oh.load_oak_programmes_units()
 # %%
+l_df["num_themes"] = l_df.learningThemes.apply(len)
+l_df.groupby("subjectSlug").value_counts(subset=["num_themes"])
+# %%
+l_df["has_cg"] = l_df.contentGuidance.apply( lambda x: x is not None)
+l_df.groupby("subjectSlug").value_counts(subset=["has_cg"])
+# %%
+# take question, correct anaswer, feedback and hint, put them togehter. 
+# images?
