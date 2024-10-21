@@ -5,6 +5,7 @@ import numpy as np
 import tiktoken
 from openai import OpenAI
 
+from .constants import DATA_DIR
 
 class BM25:
     def __init__(
@@ -118,3 +119,58 @@ def get_embeddings(
         create_out = client.embeddings.create(input=batch_docs, model=encoding_model)
         embeddings.extend([emb.embedding for emb in create_out.data])
     return embeddings
+
+
+def get_klp_BM25(flat_klp, scores_dir=DATA_DIR / "bm25_scores"):
+    klp_bm25 = BM25([klp["keyLearningPoint"] for klp in flat_klp.values()])
+
+    top_tokens = klp_bm25._encoding.decode_batch(
+        [[tok] for tok, _ in sorted(klp_bm25.doc_freqs.items(), key=lambda x: x[1], reverse=True)]
+    )
+
+    allscores = []
+    batchscores = []
+    batchscores_full = []
+    batchsize = 500
+    loaded = False
+    for i in range(len(klp_bm25.documents)):
+        ### check at the start of each batch if the file exists
+        if i % batchsize == 0:
+            print(i)
+            batchi = i // batchsize
+            outfile = scores_dir / f"bm25_scores_batchsize_{batchsize}_batch{batchi :06d}.npz"
+            ### load if it does and skip batch
+            if outfile.exists():
+                batchscores = np.load(outfile)["a"]
+                print(batchscores.shape[0])
+                loaded = True
+        if not loaded:
+            doc = klp_bm25.documents[i]
+            docindex = [
+                idx
+                for idx, klp in enumerate(flat_klp)
+                if (
+                    klp["subjectSlug"] == flat_klp[i]["subjectSlug"]
+                    and klp["examBoardSlug"] == flat_klp[i]["examBoardSlug"]
+                )
+            ]
+            scores = klp_bm25.get_scores(doc, docindex=docindex)
+            scores_full = np.zeros(len(flat_klp))
+            scores_full[docindex] = scores
+            batchscores.append(scores_full)
+        if (i + 1) % batchsize == 0 or i == len(klp_bm25.documents) - 1:
+            if loaded:
+                batchscores_arr = batchscores
+            else:
+                batchscores_arr = np.array(batchscores)
+            batchi = i // batchsize
+            print(batchi)
+            outfile = scores_dir / f"bm25_scores_batchsize_{batchsize}_batch{batchi :06d}.npz"
+            if not outfile.exists():
+                np.savez_compressed(outfile, a=batchscores_arr.astype(np.float32))
+            allscores.append(batchscores_arr)
+            batchscores = []
+            loaded = False
+
+    A = np.concatenate(allscores, axis=0)
+    return A
