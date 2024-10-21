@@ -153,7 +153,7 @@ def extract_klp(lessons=None):
 
     lesson_keys = ["subjectSlug", "examBoardSlug", "unitStudyOrder", "yearOrder"]
     flat_klp = {
-        f"{lesson['programmeSlug']}-{lesson['unitSlug']}-{lesson['lessonSlug']}-{klpidx}": {
+        f"{lesson['programmeSlug']}/{lesson['unitSlug']}/{lesson['lessonSlug']}/{klpidx}": {
             "l_index": lidx,
             "klp_index": klpidx,
             **{key: lesson[key] for key in lesson_keys},
