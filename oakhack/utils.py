@@ -206,7 +206,7 @@ def extract_question_content(questions):
     
     To get a single string representation of each question:
     >> extracted_questions = extract_question_content(questions)
-    >> q_strs = ["\n".join(q["text"] for q in extracted_questions)]
+    >> q_strs = ["\n".join([q["text"]) for q in extracted_questions]
     """
     extracted_questions = []
     for question in questions:
@@ -263,7 +263,7 @@ def extract_question_content(questions):
 
         q_text.extend([question[k] for k in ["hint", "feedback"]])
 
-        q = {"text": q_text, "images": q_image}
+        q = {"text": [t for t in q_text if t], "images": q_image}
         extracted_questions.append(q)
     
     return extracted_questions

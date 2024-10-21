@@ -85,3 +85,6 @@ for question in questions:
 
 
 # %%
+extracted_questions = oh.utils.extract_question_content(questions)
+# %%
+q_strs = ["\n".join([t for t in q["text"] if t]) for q in extracted_questions)]
