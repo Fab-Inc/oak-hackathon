@@ -4,3 +4,6 @@
 ['remote "azure"']
     url = azure://oakhack-dvc
     account_name = oakhacksa
+    read_timeout = 1000
+    timeout = 1000
+    connection_timeout = 1000
