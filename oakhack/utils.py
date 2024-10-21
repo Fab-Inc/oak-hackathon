@@ -143,11 +143,16 @@ def load_oak_lessons_with_df(oak_json_file=DATA_DIR / "oak_json.zip"):
 
 
 def extract_klp(lessons=None):
-    """Extract a flat dict of all available key learning points, with metadata fields added.
-    Keys are of the form: <programmeSlug>-<unitSlug>-<lessonSlug>-<key-learning-point-index>.
+    """Extract all available key learning points
+    
+    Returns a dict with keys:
+    "<programmeSlug>/<unitSlug>/<lessonSlug>/<key-learning-point-index>"
+    and values as a dict with 'keyLearningPoint' and other metadata. 
+
     If key cache file exists, keys are validated against cached keys, otherwise cache file is
-    created. 
+    created.
     """
+
     if lessons is None:
         lessons = load_oak_lessons()
 
