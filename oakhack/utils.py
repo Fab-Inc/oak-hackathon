@@ -3,6 +3,7 @@ import json
 import itertools as it
 from pathlib import Path
 import pandas as pd
+import gzip
 
 from .constants import DATA_DIR
 
@@ -52,7 +53,7 @@ def load_oak_programmes_units(oak_json_file=DATA_DIR / "oak_json.zip"):
 
 def load_oak_lessons(oak_json_file=DATA_DIR / "oak_json.zip"):
     """Load all lessons from Oak from a zip archive of the scraped json
-    
+
     Returns a flat list of all the lessons"""
 
     programmes, units_by_programme = load_oak_programmes_units(oak_json_file)
@@ -141,6 +142,41 @@ def load_oak_lessons_with_df(oak_json_file=DATA_DIR / "oak_json.zip"):
     return lessons_l, lessons_df
 
 
+def extract_klp(lessons=None):
+    """Extract a flat dict of all available key learning points, with metadata fields added.
+    Keys are of the form: <programmeSlug>-<unitSlug>-<lessonSlug>-<key-learning-point-index>.
+    If key cache file exists, keys are validated against cached keys, otherwise cache file is
+    created. 
+    """
+    if lessons is None:
+        lessons = load_oak_lessons()
+
+    lesson_keys = ["subjectSlug", "examBoardSlug", "unitStudyOrder", "yearOrder"]
+    flat_klp = {
+        f"{lesson['programmeSlug']}-{lesson['unitSlug']}-{lesson['lessonSlug']}-{klpidx}": {
+            "l_index": lidx,
+            "klp_index": klpidx,
+            **{key: lesson[key] for key in lesson_keys},
+            "keyLearningPoint": klp["keyLearningPoint"],
+        }
+        for lidx, lesson in enumerate(lessons)
+        for klpidx, klp in enumerate(lesson["keyLearningPoints"])
+    }
+
+    flat_klp_index = list(flat_klp)
+    index_file = DATA_DIR / "flat_klp_index.json.gz"
+    if index_file.exists():
+        with gzip.open(index_file, "rt") as f:
+            flat_klp_index_cache = json.load(f)
+        if flat_klp_index_cache != flat_klp_index:
+            raise ValueError("Index doesn't match cache")
+    else:
+        with gzip.open(index_file, "wt") as f:
+            json.dump(flat_klp_index, f)
+    
+    return flat_klp
+
+
 def extract_questions(lessons):
     """Extract a flat list of all available questions, with metadata fields added
 
@@ -201,12 +237,12 @@ def extract_questions(lessons):
 
 
 def extract_question_content(questions):
-    """ Extract relevant content from questions
-    
+    """Extract relevant content from questions
+
     Includes: question, correct answers, hint and feedback
     Ignores: wrong answers
     Returns both text and image lists
-    
+
     To get a single string representation of each question:
     >> extracted_questions = extract_question_content(questions)
     >> q_strs = ["\n".join([q["text"]) for q in extracted_questions]
@@ -268,5 +304,5 @@ def extract_question_content(questions):
 
         q = {"text": [t for t in q_text if t], "images": q_image}
         extracted_questions.append(q)
-    
+
     return extracted_questions

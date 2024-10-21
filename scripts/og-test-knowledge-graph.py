@@ -1,8 +1,10 @@
 # %%
 import numpy as np
 from tqdm import tqdm
+import json
+import gzip
 
-from oakhack.utils import load_oak_lessons
+from oakhack.utils import load_oak_lessons, extract_klp
 from oakhack.embeddings import BM25
 from oakhack import DATA_DIR
 
@@ -12,20 +14,10 @@ scores_dir.mkdir(exist_ok=True, parents=True)
 # %%
 lessons = load_oak_lessons()
 
-# %%
-lesson_keys = ["subjectSlug", "examBoardSlug", "unitStudyOrder", "yearOrder"]
-flat_klp = [
-    {
-        "l_index": lidx,
-        "klp_index": klpidx,
-        **{key: lesson[key] for key in lesson_keys},
-        "keyLearningPoint": klp["keyLearningPoint"],
-    }
-    for lidx, lesson in enumerate(lessons)
-    for klpidx, klp in enumerate(lesson["keyLearningPoints"])
-]
+flat_klp = extract_klp(lessons)
 
-klp_bm25 = BM25([klp["keyLearningPoint"] for klp in flat_klp])
+# %%
+klp_bm25 = BM25([klp["keyLearningPoint"] for klp in flat_klp.values()])
 
 top_tokens = klp_bm25._encoding.decode_batch(
     [[tok] for tok, _ in sorted(klp_bm25.doc_freqs.items(), key=lambda x: x[1], reverse=True)]
