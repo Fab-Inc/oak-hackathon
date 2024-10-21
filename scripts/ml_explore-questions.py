@@ -144,8 +144,11 @@ def describe_image(image_url, prompt, api_key=api_key, model='gpt-4o-2024-08-06'
         print(f"Error processing {image_url}: {response.status_code} {response.text}")
         return ""
 
-
+import json
+outpath = DATA_DIR / "question_json"
+outpath.mkdir(exist_ok=True)
 # template to describe images
+qid = 0
 for question in extracted_questions:
     question["image-text"] = []
     prompt = prompt_from_question(question)
@@ -154,7 +157,9 @@ for question in extracted_questions:
         description = describe_image(url,prompt)
         # description = call_llm_to_describe_image(url)
         question["image-text"].append(description)
-
+    with open(outpath / f"question_{qid}.json", "w") as f:
+        json.dump(question, f)
+    qid += 1
 
 # %%
 
