@@ -152,6 +152,12 @@ qid = 0
 for question in extracted_questions:
     question["image-text"] = []
     prompt = prompt_from_question(question)
+    qid += 1
+    outfile = outpath / f"question_{qid}.json"
+    if outfile.exists():
+        continue
+    if len(question["images"]) == 0:
+        continue
     for url in question["images"]:
         
         description = describe_image(url,prompt)
@@ -159,7 +165,7 @@ for question in extracted_questions:
         question["image-text"].append(description)
     with open(outpath / f"question_{qid}.json", "w") as f:
         json.dump(question, f)
-    qid += 1
+
 
 # %%
 
