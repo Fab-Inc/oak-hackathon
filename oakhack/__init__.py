@@ -3,11 +3,11 @@ from pathlib import Path
 from dotenv import load_dotenv
 from loguru import logger
 
-import constants
+from . import constants
 from .constants import *
-import utils
+from . import utils
 from .utils import *
-import embeddings
+from . import embeddings
 from .embeddings import *
 
 
