@@ -7,6 +7,7 @@ import pandas as pd
 # %%
 programmes, units = oh.utils.load_oak_programmes_units()
 lessons, l_df = oh.utils.load_oak_lessons_with_df()
+#%%
 questions, q_df = oh.utils.extract_questions(lessons)
 extracted_questions = oh.utils.extract_question_content(questions)
 flat_klp = oh.utils.extract_klp(lessons)
@@ -33,28 +34,34 @@ with open(oh.DATA_DIR / "similarity/bm25-q-klp-by-programme.npz", "rb")  as f:
 p = "biology-secondary-ks4-foundation-aqa"
 programme_questions = q_df.loc[q_df.programmeSlug == p]
 q_select = 0  # index in programme questions
-q = questions[programme_questions.iloc[q_select].name]
-q_lessonkey = f"{q['programmeSlug']}/{q['unitSlug']}/{q['lessonSlug']}"
-q_unit = q["unitSlug"]
 
-# same lesson
-klp_samelesson_idx = klp_df.loc[
-    (klp_df.programme == p) # same programmes
-    & (klp_df.lesson_key == q_lessonkey) # same lesson
-].index.to_numpy()
+for q in range(len(programme_questions)):
+    q = questions[programme_questions.iloc[q_select].name]
+    q_lessonkey = f"{q['programmeSlug']}/{q['unitSlug']}/{q['lessonSlug']}"
+    q_unit = q["unitSlug"]
 
-# same-unit but different lesson
-klp_sameunit_idx = klp_df.loc[
-    (klp_df.programme == p) # within program
-    & (klp_df.lesson_key != q_lessonkey) # not same lesseon
-    & (klp_df.unit == q_unit) # same unit
-].index.to_numpy()
+    # same lesson
+    klp_samelesson_idx = klp_df.loc[
+        (klp_df.programme == p) # same programmes
+        & (klp_df.lesson_key == q_lessonkey) # same lesson
+    ].index.to_numpy()
 
-# different unit
-klp_diffint_idx = klp_df.loc[
-    (klp_df.programme == p) # same programme
-    & (klp_df.unit != q_unit) # different unit
-].index.to_numpy()
+    # same-unit but different lesson
+    klp_sameunit_idx = klp_df.loc[
+        (klp_df.programme == p) # within program
+        & (klp_df.lesson_key != q_lessonkey) # not same lesseon
+        & (klp_df.unit == q_unit) # same unit
+    ].index.to_numpy()
+
+    # different unit
+    klp_diffint_idx = klp_df.loc[
+        (klp_df.programme == p) # same programme
+        & (klp_df.unit != q_unit) # different unit
+    ].index.to_numpy()
+
+    # mean cos 
+    # mean bm
+    # mean bm + 0.8 * cos 
 
 # %%
 q_idx = q_df.loc[q_df.programmeSlug == p].index.to_numpy()
