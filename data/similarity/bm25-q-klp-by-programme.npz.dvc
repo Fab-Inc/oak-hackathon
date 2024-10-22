@@ -1,0 +1,5 @@
+outs:
+- md5: fd3b0fcf01bfe56cb9f8070f9d5ed0ef
+  size: 1585054418
+  hash: md5
+  path: bm25-q-klp-by-programme.npz

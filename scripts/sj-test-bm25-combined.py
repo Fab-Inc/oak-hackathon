@@ -102,7 +102,6 @@ def separate_lessons():
 
     return result
 
-s = time()
 programmes, units = oh.utils.load_oak_programmes_units()
 lessons, l_df = oh.utils.load_oak_lessons_with_df()
 questions, q_df = oh.utils.extract_questions(lessons)
