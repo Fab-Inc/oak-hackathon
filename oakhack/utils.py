@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import gzip
 
+from collections import defaultdict
 from .constants import DATA_DIR
 
 
@@ -197,6 +198,38 @@ def extract_klp(lessons=None):
             json.dump(flat_klp_index, f)
 
     return flat_klp
+
+
+def extract_klp_with_df(flat_klp=None):
+    if flat_klp is None:
+        flat_klp = extract_klp(lessons=lessons)
+    flat_klp_l = []
+    for k,v in flat_klp.items():
+        flat_klp_l.append({"klp_key":k, **v})
+
+    # build a klp index dataframe
+    data_df = defaultdict(list)
+    for klp in flat_klp_l:
+        programme, unit, lesson, klp_idx = klp["klp_key"].split("/")
+        lesson_key = "/".join([programme, unit, lesson])
+        data_df['programme'].append(programme)
+        data_df['unit'].append(unit)
+        data_df['lesson'].append(lesson)
+        data_df['lesson_key'].append(lesson_key)
+        data_df['l_klp_idx'].append(klp_idx)
+        lesson_keys = {
+            "subject":"subjectSlug",
+            "examBoard": "examBoardSlug",
+            "tier": "tierSlug",
+            "ks": "keyStageSlug",
+        }
+        [data_df[k].append(klp[v]) for k,v in lesson_keys.items()]
+        lesson_keys = ["unitStudyOrder","yearOrder"]
+        [data_df[k].append(klp[k]) for k in lesson_keys]
+
+    klp_df = pd.DataFrame(data_df)
+    return flat_klp_l, klp_df
+
 
 
 def extract_questions(lessons):
