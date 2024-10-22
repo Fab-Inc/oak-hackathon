@@ -3,7 +3,8 @@ import oakhack as oh
 import requests
 import os
 from tqdm import tqdm
-
+import json
+import gzip
 
 base_url = "https://open-api.thenational.academy/api/v0"
 session = requests.Session()
@@ -112,4 +113,12 @@ def update_lesson_from_api(lesson):
 
 with ThreadPoolExecutor(max_workers=16) as executor:
     results = list(executor.map(update_lesson_from_api, lessons))
+lessons = results
+# %%
+#save updates
+with gzip.open(oh.DATA_DIR / "lessons_with_api_updates.json.gz", "wt") as f:
+    json.dump(results,f)
+# %%
+with gzip.open(oh.DATA_DIR / "units_with_api_updates.json.gz", "wt") as f:
+    json.dump(units,f)
 # %%

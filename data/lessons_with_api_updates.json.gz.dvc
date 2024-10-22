@@ -1,0 +1,5 @@
+outs:
+- md5: 6f9e3df3adee3f026e760458c8c71627
+  size: 88313972
+  hash: md5
+  path: lessons_with_api_updates.json.gz
