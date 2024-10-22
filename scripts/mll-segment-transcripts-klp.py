@@ -187,7 +187,6 @@ transcript_embeddings = get_embeddings(transcript_sentences)
 # Compute cosine similarity for each sentence with all key learning points
 similarities = cosine_similarity(transcript_embeddings, klp_embeddings)
 #print(similarities.shape)
-
 #plt.figure(figsize=(10, 8))
 #sns.heatmap(similarities, cmap='coolwarm', annot=False, fmt=".2f", cbar=True, vmin=-1, vmax=1)
 #plt.title('Similarity Matrix Heatmap', fontsize=16)
@@ -204,7 +203,6 @@ transcript_sent_embed = pd.DataFrame({
 
 print(transcript_sent_embed.shape)
 transcript_sent_embed.head()
-
 
 # %%
 # merge the two approaches
@@ -226,8 +224,41 @@ acc = (transcript_sent_embed['index'] == transcript_sent_embed['index llm']).mea
 print(f"Accuracy: {acc:.2f}")
 
 # %%
+###########################
+###########################
+# Final version with embeddings
 
-# with similarity threshold
+# %%
+# input:
+# - list of klps
+# - transcript
+
+len_klps = []
+for i, lesson in enumerate(lessons):
+    klps = lesson['keyLearningPoints']
+    transcript_sentences = lesson['transcriptSentences']
+
+    klps_list = []
+    for klp in klps:
+        klps_list.append(klp['keyLearningPoint'])
+    len_klps.append(len(klps_list))
+    break
+
+# test for the first lesson
+
+print(f"Number of KLP: {len(klps_list)}")
+print(f"Number of sentences in transcript: {len(transcript_sentences)}")
+
+print(klps_list)
+print(transcript_sentences)
+
+# %%
+klp_embeddings = get_embeddings(klps_list)
+transcript_embeddings = get_embeddings(transcript_sentences)
+# %%
+similarities = cosine_similarity(transcript_embeddings, klp_embeddings)
+print(similarities.shape)
+
 def assign_sentence_indices(similarity_matrix, threshold):
     assigned_indices = []
 
@@ -242,7 +273,7 @@ def assign_sentence_indices(similarity_matrix, threshold):
 
     return assigned_indices
 
-sentence_assignments = assign_sentence_indices(similarities, threshold=0.75)
+sentence_assignments = assign_sentence_indices(similarities, threshold=0.7)
 print(pd.Series(sentence_assignments).value_counts())
 
 # %%
@@ -256,10 +287,11 @@ print(klp_transcript.shape)
 print(klp_transcript['klp assigned idx'].value_counts())
 klp_transcript.head()
 # %%
-for idx in klp_transcript['klp assigned idx'].value_counts():
-    print(f"KLP {idx}:\n{klps_list[idx-1]}\nSentences in transcript linked to this KLP:\n-----")
+for idx in klp_transcript['klp assigned idx'].value_counts().index:
+    print(f"KLP {int(idx)}:\n{klps_list[int(idx)-1]}\n\nSentences in transcript linked to this KLP:\n-----")
     for sent in klp_transcript[klp_transcript['klp assigned idx'] == idx]['abstract sentence']:
         print(sent)
     print("-----\n\n")
+
 
 # %%
