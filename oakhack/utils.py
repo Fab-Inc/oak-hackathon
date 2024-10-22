@@ -202,7 +202,7 @@ def extract_klp(lessons=None):
 
 def extract_klp_with_df(flat_klp=None):
     if flat_klp is None:
-        flat_klp = extract_klp(lessons=lessons)
+        flat_klp = extract_klp()
     flat_klp_l = []
     for k,v in flat_klp.items():
         flat_klp_l.append({"klp_key":k, **v})
