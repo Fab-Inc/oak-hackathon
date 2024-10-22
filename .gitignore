@@ -1,6 +1,8 @@
 # project stuff
 .env
 
+.DS_Store
+
 # python stuff
 __pycache__/
 *.py[cod]
