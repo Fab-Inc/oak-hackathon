@@ -3,6 +3,7 @@ import json
 import itertools as it
 from pathlib import Path
 import pandas as pd
+import numpy as np
 import gzip
 
 from .constants import DATA_DIR
@@ -311,3 +312,15 @@ def extract_question_content(questions):
         extracted_questions.append(q)
 
     return extracted_questions
+
+def load_embeddings(filename_pattern):
+    """Load precalculated embeddings from batched files matching filename_pattern
+    
+    >> klp_embs = load_embeddings("klp_embeddings_batch_size3000_*.npy") 
+    """
+    load_arrs = []
+    for f in sorted(
+        (DATA_DIR / "embeddings").glob(filename_pattern)
+    ):
+        load_arrs.append(np.load(f))
+    return np.concatenate(load_arrs,axis=0)
