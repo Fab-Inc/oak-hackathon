@@ -24,14 +24,12 @@ for p in list(programmes):
     cos_q_klp[p] = np.dot(q_embs[q_idx, :], klp_embs[klp_idx, :].T)
 
 # %%
-with open(oh.DATA_DIR / ".npz", "rb") as f:
-    dat = dict(np.load(f))
-
+with open(oh.DATA_DIR / "similarity/bm25-q-klp-by-programme.npz", "rb")  as f:
+    d = np.load(f,allow_pickle=True)
+    bm25_q_klp = d['arr_0'].item()
 
 # %%
-
-
-# different unit
+# based on a targe question, select KLPs related to the question in different ways
 p = "biology-secondary-ks4-foundation-aqa"
 programme_questions = q_df.loc[q_df.programmeSlug == p]
 q_select = 0  # index in programme questions
@@ -41,7 +39,8 @@ q_unit = q["unitSlug"]
 
 # same lesson
 klp_samelesson_idx = klp_df.loc[
-    (klp_df.programme == p) & (klp_df.lesson_key == q_lessonkey)
+    (klp_df.programme == p) # same programmes
+    & (klp_df.lesson_key == q_lessonkey) # same lesson
 ].index.to_numpy()
 
 # same-unit but different lesson
@@ -53,9 +52,9 @@ klp_sameunit_idx = klp_df.loc[
 
 # different unit
 klp_diffint_idx = klp_df.loc[
-    (klp_df.programme == p) & (klp_df.unit != q_unit)
+    (klp_df.programme == p) # same programme
+    & (klp_df.unit != q_unit) # different unit
 ].index.to_numpy()
-
 
 # %%
 q_idx = q_df.loc[q_df.programmeSlug == p].index.to_numpy()
