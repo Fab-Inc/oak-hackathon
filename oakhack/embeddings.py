@@ -18,9 +18,12 @@ class BM25:
         self._encoding = tiktoken.encoding_for_model(encoding_model)
         self.documents = documents.copy()
         self.doc_count = len(self.documents)
-        strdocsi, strdocs = zip(
-            *[[i, doc] for i, doc in enumerate(documents) if isinstance(doc, str)]
-        )
+        strdocsi_strdocs = [[i, doc] for i, doc in enumerate(documents) if isinstance(doc, str)]
+        if len(strdocsi_strdocs) > 0:
+            strdocsi, strdocs = zip(*strdocsi_strdocs)
+        else:
+            strdocsi, strdocs = [], []
+
         strdocs_encoded = self._encoding.encode_batch(strdocs)
         for i, strdoc_encoded in zip(strdocsi, strdocs_encoded):
             self.documents[i] = strdoc_encoded
@@ -86,6 +89,18 @@ class BM25:
         for term in query:
             score += self._bm25_score(term, doc)
         return score
+    
+    def get_scores_index_slice(self, query: list[int] | str, index_lower: int = 0, index_upper: int = -1):
+        scores = []
+        if isinstance(query, str):
+            query = self._encoding.encode(query)
+        docs_of_interest = self.documents[index_lower:index_upper]
+        for idx, doc in enumerate(docs_of_interest):
+            scores.append([idx, 0])
+            for term in query:
+                scores[idx][1] += self._bm25_score(term, doc)
+        scores.sort(key=lambda x: x[1],reverse=True)
+        return scores
 
     def get_scores(self, query: list[int] | str, vectorized=True, docindex=None):
         if docindex is None:
