@@ -3,6 +3,7 @@ from oakhack.utils import load_oak_lessons, extract_klp
 from oakhack.embeddings import BM25, get_embeddings
 from oakhack import DATA_DIR
 import oakhack as oh
+import numpy as np
 #%%
 
 programmes, units = oh.utils.load_oak_programmes_units()
@@ -22,3 +23,4 @@ for i, batch_start in enumerate(range(0, embsarr.shape[0], batch_size)):
         DATA_DIR / f"embeddings/question_embeddings_batch_size{batch_size}_{i :05d}.npy",
         outarr,
     )
+# %%
