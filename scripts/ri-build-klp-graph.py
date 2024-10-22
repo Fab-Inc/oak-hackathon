@@ -17,3 +17,10 @@ G = nx.from_numpy_array(klpA)
 G = nx.from_scipy_sparse_array(spA)
 
 # %%
+# get lesson info from a klp
+key = 'biology-secondary-ks4-foundation-aqa/eukaryotic-and-prokaryotic-cells/cells/0'
+*lesson_key, klp_idx = key.split('/')
+lesson_key = "/".join(lesson_key)
+
+lesson = l_df[l_df.loc
+programme_slug, unit_slug, lesson_slug, idx = key.split('/')
