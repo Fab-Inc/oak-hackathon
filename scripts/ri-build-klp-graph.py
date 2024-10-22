@@ -24,9 +24,12 @@ nklp = len(flat_klp)
 year_order = np.array([klp["yearOrder"] for klp in flat_klp.values()])
 unit_study_order = np.array([klp["unitStudyOrder"] for klp in flat_klp.values()])
 
-earlier = (year_order[:, None] < year_order[None]) | (
-    (year_order[:, None] == year_order[None])
-    & (unit_study_order[:, None] < unit_study_order[None])
+earlier = np.packbits(
+    (year_order[:, None] < year_order[None])
+    | (
+        (year_order[:, None] == year_order[None])
+        & (unit_study_order[:, None] < unit_study_order[None])
+    )
 )
 
 
