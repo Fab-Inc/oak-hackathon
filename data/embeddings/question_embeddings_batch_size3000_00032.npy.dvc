@@ -1,0 +1,5 @@
+outs:
+- md5: 866d79f41c0fb3de030b4c3a00c40c04
+  size: 36864128
+  hash: md5
+  path: question_embeddings_batch_size3000_00032.npy
