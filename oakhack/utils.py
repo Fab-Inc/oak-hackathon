@@ -43,7 +43,13 @@ def load_oak_programmes_units(oak_json_file=DATA_DIR / "oak_json.zip"):
                 if unit[0]["cohort"] != "2023-2024":
                     continue
 
-                fname = "oak_scraped_json/" + pslug + "/" + unit[0]["slug"] + "/lessons.json"
+                fname = (
+                    "oak_scraped_json/"
+                    + pslug
+                    + "/"
+                    + unit[0]["slug"]
+                    + "/lessons.json"
+                )
                 with zip.open(fname) as f:
                     units_by_programme[pslug][unit[0]["slug"]] = json.load(f)["props"][
                         "pageProps"
@@ -81,7 +87,9 @@ def load_oak_lessons(oak_json_file=DATA_DIR / "oak_json.zip"):
                             lbu[key] = pj[key]
                         for key in unit_inherit_fields:
                             lesson_unit = [
-                                unt[0] for unt in pj["units"] if unt[0]["slug"] == unit["unitSlug"]
+                                unt[0]
+                                for unt in pj["units"]
+                                if unt[0]["slug"] == unit["unitSlug"]
                             ]
                             if len(lesson_unit) != 1:
                                 raise ValueError("should be exactly one lesson unit")
@@ -136,7 +144,8 @@ def load_oak_lessons_with_df(oak_json_file=DATA_DIR / "oak_json.zip"):
 
     df_data["unitKey"] = [l["programmeSlug"] + "/" + l["unitSlug"] for l in lessons_l]
     df_data["lessonKey"] = [
-        l["programmeSlug"] + "/" + l["unitSlug"] + "/" + l["lessonSlug"] for l in lessons_l
+        l["programmeSlug"] + "/" + l["unitSlug"] + "/" + l["lessonSlug"]
+        for l in lessons_l
     ]
     lessons_df = pd.DataFrame(df_data)
 
@@ -145,10 +154,10 @@ def load_oak_lessons_with_df(oak_json_file=DATA_DIR / "oak_json.zip"):
 
 def extract_klp(lessons=None):
     """Extract all available key learning points
-    
+
     Returns a dict with keys:
     "<programmeSlug>/<unitSlug>/<lessonSlug>/<key-learning-point-index>"
-    and values as a dict with 'keyLearningPoint' and other metadata. 
+    and values as a dict with 'keyLearningPoint' and other metadata.
 
     If key cache file exists, keys are validated against cached keys, otherwise cache file is
     created.
@@ -157,7 +166,14 @@ def extract_klp(lessons=None):
     if lessons is None:
         lessons = load_oak_lessons()
 
-    lesson_keys = ["subjectSlug", "examBoardSlug", "unitStudyOrder", "yearOrder"]
+    lesson_keys = [
+        "subjectSlug",
+        "examBoardSlug",
+        "unitStudyOrder",
+        "yearOrder",
+        "keyStageSlug",
+        "tierSlug",
+    ]
     flat_klp = {
         f"{lesson['programmeSlug']}/{lesson['unitSlug']}/{lesson['lessonSlug']}/{klpidx}": {
             "l_index": lidx,
@@ -179,7 +195,7 @@ def extract_klp(lessons=None):
     else:
         with gzip.open(index_file, "wt") as f:
             json.dump(flat_klp_index, f)
-    
+
     return flat_klp
 
 
@@ -235,7 +251,8 @@ def extract_questions(lessons):
 
     df_data["unitKey"] = [q["programmeSlug"] + "/" + q["unitSlug"] for q in questions]
     df_data["lessonKey"] = [
-        q["programmeSlug"] + "/" + q["unitSlug"] + "/" + q["lessonSlug"] for q in questions
+        q["programmeSlug"] + "/" + q["unitSlug"] + "/" + q["lessonSlug"]
+        for q in questions
     ]
     questions_df = pd.DataFrame(df_data)
 
@@ -290,7 +307,9 @@ def extract_question_content(questions):
         elif question["questionType"] == "match":
             for answer in question["answers"]["match"]:
                 # add all answer stems and match words
-                for blocks in it.chain([answer[k] for k in ["correctChoice", "matchOption"]]):
+                for blocks in it.chain(
+                    [answer[k] for k in ["correctChoice", "matchOption"]]
+                ):
                     for block in blocks:
                         if block["type"] == "text":
                             q_text.append(block["text"])
@@ -304,7 +323,9 @@ def extract_question_content(questions):
                         if block["type"] == "text":
                             q_text.append(block["text"])
                         else:
-                            print(f"found short-answer answer block of type: {block["type"]}")
+                            print(
+                                f"found short-answer answer block of type: {block["type"]}"
+                            )
 
         q_text.extend([question[k] for k in ["hint", "feedback"]])
 
@@ -313,14 +334,13 @@ def extract_question_content(questions):
 
     return extracted_questions
 
+
 def load_embeddings(filename_pattern):
     """Load precalculated embeddings from batched files matching filename_pattern
-    
-    >> klp_embs = load_embeddings("klp_embeddings_batch_size3000_*.npy") 
+
+    >> klp_embs = load_embeddings("klp_embeddings_batch_size3000_*.npy")
     """
     load_arrs = []
-    for f in sorted(
-        (DATA_DIR / "embeddings").glob(filename_pattern)
-    ):
+    for f in sorted((DATA_DIR / "embeddings").glob(filename_pattern)):
         load_arrs.append(np.load(f))
-    return np.concatenate(load_arrs,axis=0)
+    return np.concatenate(load_arrs, axis=0)
