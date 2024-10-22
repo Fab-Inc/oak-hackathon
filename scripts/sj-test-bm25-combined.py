@@ -4,6 +4,8 @@ from oakhack.utils import load_oak_lessons, extract_klp
 from oakhack.embeddings import BM25
 from time import time
 import json
+from tqdm import tqdm
+import numpy as np
 
 keys = [
     'isLegacy', 'lessonSlug', 'lessonTitle', 
@@ -101,40 +103,35 @@ def separate_lessons():
     return result
 
 s = time()
-lessons = load_oak_lessons()
-flat_klp = extract_klp(lessons)
-klps = [klp["keyLearningPoint"] for klp in flat_klp.values()]
-
 programmes, units = oh.utils.load_oak_programmes_units()
 lessons, l_df = oh.utils.load_oak_lessons_with_df()
 questions, q_df = oh.utils.extract_questions(lessons)
 extracted_questions = oh.utils.extract_question_content(questions)
-q_strs = ['\n'.join(q['text']) for q in extracted_questions] 
+flat_klp = oh.utils.extract_klp(lessons)
+flat_klp_l, klp_df = oh.utils.extract_klp_with_df(flat_klp)
+flat_klp_l = [f_klp_l["keyLearningPoint"] for f_klp_l in flat_klp_l]
+flat_klp_l = np.array(flat_klp_l)
 
+q_strs = np.array(['\n'.join(q['text']) for q in extracted_questions] )
+
+bm25_q_klp = {}
 encoding = tiktoken.encoding_for_model("text-embedding-3-large")
-encoded_questions = encoding.encode_batch(q_strs)
-encoded_klps = encoding.encode_batch(klps)
-all_encodings = []
-all_encodings.extend(encoded_questions)
-all_encodings.extend(encoded_klps)
-bm25 = BM25(all_encodings)
-print("Beginning scoring")
-separated_lessons = separate_lessons()
-for subject, lessons in separated_lessons.items():
-    subject_klps = []
-    for lesson in lessons.values():
-        subject_klps.extend(lesson.get("klps", []))
-        questions = lesson.get("questions", [])
-        
-        if len(questions) > 0:
-            encoded_questions = encoding.encode_batch(questions)
-            print(lesson.get("klps", []))
-            for question in questions:
-                scores = bm25.get_scores_index_slice(question, index_lower=len(encoded_questions))
-                break
-        break
-    break
+training_set_unencoded = np.concatenate((flat_klp_l, q_strs)).tolist()
+training_set = encoding.encode_batch(training_set_unencoded)
+bm25 = BM25(training_set)
 
-print("---"*12)
-e = time()
-print(e - s)
+for p in tqdm(list(programmes)):
+    klp_idx = klp_df.loc[klp_df.programme == p].index.to_numpy()
+    q_idx = q_df.loc[q_df.programmeSlug == p].index.to_numpy()
+    question_strings_unencoded = q_strs[q_idx]
+    question_strings = encoding.encode_batch(question_strings_unencoded)
+    score_array = []
+    for question_string in question_strings:
+        scores = bm25.get_scores(question_string, docindex=klp_idx)
+        ss_max = scores.max()
+        ss_min = scores.min()
+        normed_scores = (scores - ss_min) / (ss_max - ss_min)
+        score_array.append(normed_scores)
+    bm25_q_klp[p] = np.array(score_array)
+
+np.savez("./data/similarity/bm25-q-klp-by-programme", bm25_q_klp, allow_pickle=True)
