@@ -97,6 +97,7 @@ def load_oak_lessons(oak_json_file=DATA_DIR / "oak_json.zip"):
                             else:
                                 lesson_unit = lesson_unit[0]
                             lbu[key] = lesson_unit[key]
+                        lbu["orderInUnit"] = lesson["orderInUnit"]
                         lessons_by_unit[unit_path][lesson["lessonSlug"]] = lbu
 
     return flatten([[l for l in us.values()] for us in lessons_by_unit.values()])
@@ -174,6 +175,7 @@ def extract_klp(lessons=None):
         "yearOrder",
         "keyStageSlug",
         "tierSlug",
+        "orderInUnit",
     ]
     flat_klp = {
         f"{lesson['programmeSlug']}/{lesson['unitSlug']}/{lesson['lessonSlug']}/{klpidx}": {
