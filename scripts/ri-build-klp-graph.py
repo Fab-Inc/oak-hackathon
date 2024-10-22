@@ -28,6 +28,7 @@ klpB = klp_embs @ klp_embs.T
 # %%
 ### filter klp by programme
 programme = "biology-secondary-ks4-foundation-aqa"
+# programme = "chemistry-secondary-ks4-foundation-edexcel"
 
 klp_programme_index = [
     i for (i, key) in enumerate(flat_klp) if key.split("/")[0] == programme
@@ -37,7 +38,9 @@ klppi_ix = np.ix_(klp_programme_index, klp_programme_index)
 klpA_programme = klpA[klppi_ix]
 klpB_programme = klpB[klppi_ix]
 flat_klp_programme = {
-    key: klp for i, (key, klp) in enumerate(flat_klp.items()) if i in klp_programme_index
+    key: klp
+    for i, (key, klp) in enumerate(flat_klp.items())
+    if i in klp_programme_index
 }
 
 flat_klp_programme_list = list(flat_klp_programme.values())
@@ -46,11 +49,22 @@ flat_klp_programme_list = list(flat_klp_programme.values())
 nklp = len(flat_klp_programme)
 
 year_order = np.array([klp["yearOrder"] for klp in flat_klp_programme.values()])
-unit_study_order = np.array([klp["unitStudyOrder"] for klp in flat_klp_programme.values()])
+unit_study_order = np.array(
+    [klp["unitStudyOrder"] for klp in flat_klp_programme.values()]
+)
+order_in_unit = np.array([klp["orderInUnit"] for klp in flat_klp_programme.values()])
 
-earlier = (year_order[:, None] < year_order[None]) | (
-    (year_order[:, None] == year_order[None])
-    & (unit_study_order[:, None] < unit_study_order[None])
+earlier = (
+    (year_order[:, None] < year_order[None])
+    | (
+        (year_order[:, None] == year_order[None])
+        & (unit_study_order[:, None] < unit_study_order[None])
+    )
+    | (
+        (year_order[:, None] == year_order[None])
+        & (unit_study_order[:, None] == unit_study_order[None])
+        & (order_in_unit[:, None] < order_in_unit[None])
+    )
 )
 
 # %%
@@ -71,8 +85,8 @@ cutoff = 0.4
 embwt = 0.8
 
 # final adjacency matrix
-klp_adj = (klpA_masked * (1-embwt) + klpB_masked * embwt)
-klp_adj =  np.minimum(klp_adj * (klp_adj > cutoff), 1)
+klp_adj = klpA_masked * (1 - embwt) + klpB_masked * embwt
+klp_adj = np.minimum(klp_adj * (klp_adj > cutoff), 1)
 
 # create graph and set node attributes
 G = nx.from_numpy_array(klp_adj.T, create_using=nx.DiGraph)
@@ -91,11 +105,7 @@ for nodeidx, (lengths, paths) in spaths.items():
         path = paths[targetnode]
         if len(path) > 3:
             # print((nodeidx, targetnode), path)
-            print(
-                json.dumps(
-                    [flat_klp_programme_list[i]for i in path], indent=2
-                )
-            )
+            print(json.dumps([flat_klp_programme_list[i] for i in path], indent=2))
             length = lengths[targetnode]
             # print((nodeidx, targetnode), path)
             print(length)
