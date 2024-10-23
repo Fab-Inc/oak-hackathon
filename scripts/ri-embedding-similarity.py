@@ -37,7 +37,7 @@ with open(oh.DATA_DIR / "similarity/bm25-q-klp-by-programme.npz", "rb")  as f:
 beta = 0.75 # embeddign weighting
 mix_q_klp = {}
 for p in cos_q_klp.keys():
-    mix_q_klp[p] = bm25_q_klp[p] + beta*cos_q_klp[p]
+    mix_q_klp[p] = (1-beta)*bm25_q_klp[p] + beta*cos_q_klp[p]
 
 # %%
 # based on a targe question, select KLPs related to the question in different ways
@@ -113,7 +113,7 @@ for p in tqdm(programmes.keys()):
 all_res_df = pd.concat(q_klp_sim.values(),axis=0).reset_index()
 
 #%%
-all_res_df = pd.read_csv(oh.DATA_DIR / 'q_to_klp_sim_stats.csv.gz')
+# all_res_df = pd.read_csv(oh.DATA_DIR / 'q_to_klp_sim_stats.csv.gz')
 
 
 #%%
@@ -203,10 +203,11 @@ p = "biology-secondary-ks4-foundation-aqa"
 q_idx = 0
 k = 3
 top_klp = [
-    flat_klp_l[i]["keyLearningPoint"] for i in np.argsort(mix_q_klp[p][q_idx,:])[-20:-1]
+    flat_klp_l[i]["keyLearningPoint"] for i in np.argsort(mix_q_klp[p][q_idx,:])[-(k+1):-1]
 ][::-1]
 # %%
-top_lesson = [klp_df.lesson.iloc[i] for i in np.argsort(mix_q_klp[p][q_idx,:])[-20:-1]][::-1]
+top_lesson = [klp_df.lesson.iloc[i] for i in np.argsort(mix_q_klp[p][q_idx,:])[-(k+1):-1]][::-1]
 
 # %%
 q_df.query()
+# %%
