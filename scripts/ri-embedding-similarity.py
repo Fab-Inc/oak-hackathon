@@ -121,7 +121,8 @@ plot_df = all_res_df.loc[all_res_df.measure=="weighted"]
 g = sns.catplot(plot_df, x="klps", y="avg_sim",
             # col="measure",
             #col="keyStage",
-            kind="bar",
+            kind="boxen",
+            dodge=True,
             hue="quizType",
             height=3,
             aspect=2
@@ -134,7 +135,8 @@ g.ax.set_ylabel("Avg Similarity", fontsize=12)
 g = sns.catplot(plot_df, x="klps", y="avg_sim",
             # col="measure",
             col="keyStage", col_order=["ks1", "ks2", "ks3", "ks4"],col_wrap=2,
-            kind="bar",
+            # kind="bar",
+            dodge=True,
             hue="quizType"
             )
 
@@ -182,7 +184,7 @@ cos = cos_q_klp[p]
 cos_q_klp = np.dot(q_embs, klp_embs.T)
 
 # %%
-q_idx = 6
+q_idx = 0
 q_klp_cos = np.dot(q_embs[q_idx, :], klp_embs.T)
 # %%
 idx = klp_df.loc[
@@ -196,3 +198,15 @@ top_klp = [
 # top_klp = [flat_klp_l[i]['lesson'] for i in np.argsort(q_klp_cos[idx])[-100:-1]][::-1]
 top_klp = [klp_df.lesson.iloc[i] for i in np.argsort(q_klp_cos[idx])[-100:-1]][::-1]
 # %%
+# sample question
+p = "biology-secondary-ks4-foundation-aqa"
+q_idx = 0
+k = 3
+top_klp = [
+    flat_klp_l[i]["keyLearningPoint"] for i in np.argsort(mix_q_klp[p][q_idx,:])[-20:-1]
+][::-1]
+# %%
+top_lesson = [klp_df.lesson.iloc[i] for i in np.argsort(mix_q_klp[p][q_idx,:])[-20:-1]][::-1]
+
+# %%
+q_df.query()
