@@ -12,3 +12,8 @@ DATA_DIR = PROJ_ROOT / "data"
 
 # REPORTS_DIR = PROJ_ROOT / "reports"
 # FIGURES_DIR = REPORTS_DIR / "figures"
+
+DEMO_PROGRAMMES = [
+    "english-secondary-ks3",
+    "biology-secondary-ks4-higher-ocr"
+]
