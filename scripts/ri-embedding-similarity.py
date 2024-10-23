@@ -40,62 +40,113 @@ for p in cos_q_klp.keys():
 
 # %%
 # based on a targe question, select KLPs related to the question in different ways
-# p = "biology-secondary-ks4-higher-ocr"
 p = "biology-secondary-ks4-higher-ocr"
-programme_questions = q_df.loc[q_df.programmeSlug == p]
-q_select = 0  # index in programme questions
+# p = "biology-secondary-ks4-foundation-aqa"
+p = "english-secondary-ks3"
 
-data_df = defaultdict(list)
-for q_select in tqdm(range(len(programme_questions))):
-    q = questions[programme_questions.iloc[q_select].name]
-    q_lessonkey = f"{q['programmeSlug']}/{q['unitSlug']}/{q['lessonSlug']}"
-    q_unit = q["unitSlug"]
+q_klp_sim = {}
+for p in tqdm(programmes.keys()):
+# def calc_programme(p):
+    programme_questions = q_df.loc[q_df.programmeSlug == p]
+    q_select = 0  # index in programme questions
 
-    p_klp_df = klp_df.loc[(klp_df.programme == p)].copy().reset_index()
-    # same lesson
-    klp_samelesson_idx = p_klp_df.loc[
-        (p_klp_df.lesson_key == q_lessonkey) # same lesson
-    ].index.to_numpy()
+    # make it average of top-k?
 
-    # same-unit but different lesson
-    klp_sameunit_idx = p_klp_df.loc[
-        (p_klp_df.lesson_key != q_lessonkey) # not same lesseon
-        & (p_klp_df.unit == q_unit) # same unit
-    ].index.to_numpy()
+    k = 5
+    data_df = defaultdict(list)
+    for q_select in tqdm(range(len(programme_questions))):
+        q = questions[programme_questions.iloc[q_select].name]
+        q_lessonkey = f"{q['programmeSlug']}/{q['unitSlug']}/{q['lessonSlug']}"
+        q_unit = q["unitSlug"]
 
-    # different unit
-    klp_diffint_idx = p_klp_df.loc[
-        (p_klp_df.unit != q_unit) # different unit
-    ].index.to_numpy()
+        p_klp_df = klp_df.loc[(klp_df.programme == p)].copy().reset_index()
+        # same lesson
+        klp_samelesson_idx = p_klp_df.loc[
+            (p_klp_df.lesson_key == q_lessonkey) # same lesson
+        ].index.to_numpy()
 
-    sims = [bm25_q_klp[p], cos_q_klp[p], mix_q_klp[p]]
-    data_df["questionId"].extend(9*[q["questionId"]])
-        
-    data_df["avg_sim"].extend([np.mean(x[:,klp_samelesson_idx]) for x in sims])
-    data_df["measure"].extend(["bm25", "emb", "weighted"])
-    data_df["klps"].extend(3*["same-lesson"])
+        # same-unit but different lesson
+        klp_sameunit_idx = p_klp_df.loc[
+            (p_klp_df.lesson_key != q_lessonkey) # not same lesseon
+            & (p_klp_df.unit == q_unit) # same unit
+        ].index.to_numpy()
 
-    data_df["avg_sim"].extend([np.mean(x[:,klp_sameunit_idx]) for x in sims])
-    data_df["measure"].extend(["bm25", "emb", "weighted"])
-    data_df["klps"].extend(3*["same-unit"])
+        # different unit
+        klp_diffint_idx = p_klp_df.loc[
+            (p_klp_df.unit != q_unit) # different unit
+        ].index.to_numpy()
 
-    data_df["avg_sim"].extend([np.mean(x[:,klp_diffint_idx]) for x in sims])
-    data_df["measure"].extend(["bm25", "emb", "weighted"])
-    data_df["klps"].extend(3*["different-unit"])
+        sims = [bm25_q_klp[p], cos_q_klp[p], mix_q_klp[p]]
+        data_df["questionId"].extend(9*[q["questionId"]])
+        data_df["quizType"].extend(9*[q["quizType"]])
+        data_df["keyStage"].extend(9*[q["keyStageSlug"]])
+        data_df["subject"].extend(9*[q["subjectSlug"]])
+        data_df["programme"].extend(9*[p])
+        data_df["unit"].extend(9*[q["unitSlug"]])
+            
+        data_df["avg_sim"].extend([np.mean(x[q_select,klp_samelesson_idx]) for x in sims])
+        # data_df["avg_sim"].extend([np.mean(np.sort(x[q_select, klp_samelesson_idx])[-k:]) for x in sims])
+        data_df["measure"].extend(["bm25", "emb", "weighted"])
+        data_df["klps"].extend(3*["same-lesson"])
 
-q_klp_mean_df = pd.DataFrame(data_df)
+        data_df["avg_sim"].extend([np.mean(x[q_select,klp_sameunit_idx]) for x in sims])
+        # data_df["avg_sim"].extend([np.mean(np.sort(x[q_select,klp_sameunit_idx])[-k:]) for x in sims])
+        data_df["measure"].extend(["bm25", "emb", "weighted"])
+        data_df["klps"].extend(3*["same-unit"])
 
+        data_df["avg_sim"].extend([np.mean(x[q_select,klp_diffint_idx]) for x in sims])
+        # data_df["avg_sim"].extend([np.mean(np.sort(x[q_select,klp_diffint_idx])[-k:]) for x in sims])
+        data_df["measure"].extend(["bm25", "emb", "weighted"])
+        data_df["klps"].extend(3*["different-unit"])
+
+    q_klp_mean_df = pd.DataFrame(data_df)
+    q_klp_sim[p] = q_klp_mean_df 
+    # return q_klp_mean_df
+
+# from concurrent.futures import ProcessPoolExecutor
+# with ProcessPoolExecutor(max_workers=5) as executor:
+#     # Map the function to all items and process them in parallel
+#     results = list(executor.map(calc_programme, programmes.keys()))
+
+# q_klp_sim = {k: v for k,v in zip(programmes.keys(),results)}
+#%%
+all_res_df = pd.concat(q_klp_sim.values(),axis=0)
+
+#%%
+sns.catplot(all_res_df, x="klps", y="avg_sim",
+            col="measure",
+            row="keyStage"
+            kind="bar",
+            hue="quizType"
+            )
+
+sns.catplot(all_res_df, x="klps", y="avg_sim",
+            col="measure",
+            row="subject"
+            kind="bar",
+            hue="quizType"
+            )
+
+#%%
+all_res.to_csv(oh.DATA_DIR / 'q_to_klp_sim_stats.csv.gz', index=False, compression='gzip')
 # %%
 # visualise
 
-sns.catplot(data_df, x="klps", y="avg_sim", col="measure")
+sns.catplot(data_df, x="klps", y="avg_sim", col="measure",
+            # kind="bar",
+            hue="quizType", dodge=True,
+            )
+
+sns.catplot(data_df, x="klps", y="avg_sim", col="measure",
+            kind="bar",
+            hue="quizType"
+            )
 
 
 # %%
 q_idx = q_df.loc[q_df.programmeSlug == p].index.to_numpy()
 q_same_lesson = q_df.loc[q_df.programmeSlug == p].index.to_numpy()
 cos = cos_q_klp[p]
-
 
 # %%
 cos_q_klp = np.dot(q_embs, klp_embs.T)
