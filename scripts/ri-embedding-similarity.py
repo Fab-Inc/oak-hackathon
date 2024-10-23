@@ -40,6 +40,7 @@ for p in cos_q_klp.keys():
 
 # %%
 # based on a targe question, select KLPs related to the question in different ways
+# p = "biology-secondary-ks4-higher-ocr"
 p = "biology-secondary-ks4-higher-ocr"
 programme_questions = q_df.loc[q_df.programmeSlug == p]
 q_select = 0  # index in programme questions
@@ -82,12 +83,12 @@ for q_select in tqdm(range(len(programme_questions))):
     data_df["measure"].extend(["bm25", "emb", "weighted"])
     data_df["klps"].extend(3*["different-unit"])
 
-
 q_klp_mean_df = pd.DataFrame(data_df)
 
 # %%
 # visualise
 
+sns.catplot(data_df, x="klps", y="avg_sim", col="measure")
 
 
 # %%
