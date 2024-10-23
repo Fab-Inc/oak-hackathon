@@ -7,6 +7,7 @@ from collections import defaultdict
 from tqdm import tqdm
 import seaborn as sns
 
+
 # %%
 programmes, units = oh.utils.load_oak_programmes_units()
 lessons, l_df = oh.utils.load_oak_lessons_with_df()
@@ -109,26 +110,55 @@ for p in tqdm(programmes.keys()):
 #     results = list(executor.map(calc_programme, programmes.keys()))
 
 # q_klp_sim = {k: v for k,v in zip(programmes.keys(),results)}
-#%%
-all_res_df = pd.concat(q_klp_sim.values(),axis=0)
+all_res_df = pd.concat(q_klp_sim.values(),axis=0).reset_index()
 
 #%%
-sns.catplot(all_res_df, x="klps", y="avg_sim",
-            col="measure",
-            row="keyStage"
+all_res_df = pd.read_csv(oh.DATA_DIR / 'q_to_klp_sim_stats.csv.gz')
+
+
+#%%
+plot_df = all_res_df.loc[all_res_df.measure=="weighted"]
+g = sns.catplot(plot_df, x="klps", y="avg_sim",
+            # col="measure",
+            #col="keyStage",
+            kind="bar",
+            hue="quizType",
+            height=3,
+            aspect=2
+            )
+
+g.figure.suptitle("Question-KLP similarity", fontsize=16, y=1.02)
+g.ax.set_xlabel("KLP Relationship to Question", fontsize=12)
+g.ax.set_ylabel("Avg Similarity", fontsize=12)
+#%%
+g = sns.catplot(plot_df, x="klps", y="avg_sim",
+            # col="measure",
+            col="keyStage", col_order=["ks1", "ks2", "ks3", "ks4"],col_wrap=2,
             kind="bar",
             hue="quizType"
             )
 
-sns.catplot(all_res_df, x="klps", y="avg_sim",
-            col="measure",
-            row="subject"
+g.figure.suptitle("Question-KLP similarity", fontsize=16, y=1.02)
+xl = "KLP Relationship to Question"
+g.axes[2].set_xlabel(xl, fontsize=12)  # Bottom left
+g.axes[3].set_xlabel(xl, fontsize=12)  # Bottom right
+#%%
+g = sns.catplot(plot_df, x="klps", y="avg_sim",
+            # col="measure",
+            col="subject",col_wrap=2,
             kind="bar",
             hue="quizType"
             )
 
+g.figure.suptitle("Question-KLP similarity", fontsize=16, y=1.02)
+xl = "KLP Relationship to Question"
+g.axes[-2].set_xlabel(xl, fontsize=12)  # Bottom left
+g.axes[-1].set_xlabel(xl, fontsize=12)  # Bottom right
+g.set_titles(template='{col_name}')
+
+
 #%%
-all_res.to_csv(oh.DATA_DIR / 'q_to_klp_sim_stats.csv.gz', index=False, compression='gzip')
+all_res_df.to_csv(oh.DATA_DIR / 'q_to_klp_sim_stats.csv.gz', index=False, compression='gzip')
 # %%
 # visualise
 
