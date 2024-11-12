@@ -53,6 +53,7 @@ if response.status_code == 200:
 
         for programme in index_data["props"]["pageProps"]["programmes"]:
             programme_slug = programme["programmeSlug"]
+            print(programme_slug)
             programme_folder = outdir / programme_slug
             programme_folder.mkdir(exist_ok=True, parents=True)
 

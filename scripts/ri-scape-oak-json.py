@@ -18,8 +18,8 @@ headers = {
 outdir = OUT_DIR
 
 # %%
-# key stages 1-3
-for i in range(1, 4):
+# key stages 1-4
+for i in range(1, 5):
     ks_slug = f"ks{i}"
     stages_url = f"{base_url}key-stages/{ks_slug}/subjects"
     print(stages_url)
@@ -42,6 +42,7 @@ for i in range(1, 4):
                 # old ks4 are the same as others
                 continue
             programme_slug = subject["data"]["programmeSlug"]
+            print(programme_slug)
             subject_url = f"https://www.thenational.academy/teachers/programmes/{programme_slug}/units"
             response = requests.get(subject_url, headers=headers)
             soup = BSoup(response.text, "lxml")
