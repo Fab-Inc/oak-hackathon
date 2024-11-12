@@ -19,8 +19,9 @@ outdir = OUT_DIR
 
 # %%
 # key stages 1-4
-for i in range(1, 5):
-    ks_slug = f"ks{i}"
+# for i in range(1, 5):
+    # ks_slug = f"ks{i}"
+for ks_slug in ["early-years-foundation-stage"] + [f"ks{i}" for i in range(1,5)]:
     stages_url = f"{base_url}key-stages/{ks_slug}/subjects"
     print(stages_url)
 
@@ -120,3 +121,5 @@ for i in range(1, 5):
 
                             with open(unit_folder / f"{lesson_slug}.json", "w") as file:
                                 json.dump(index_data, file, indent=2)
+
+# %%
