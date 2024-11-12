@@ -7,7 +7,8 @@ from bs4 import BeautifulSoup as BSoup
 from oakhack import PROJ_ROOT, DATA_DIR
 import json
 
-OUT_DIR = DATA_DIR / "oak_scraped_json"
+OUT_DIR = DATA_DIR / "oak_scraped_json_nov24"
+OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def pageWebContainers(page_data, element):
@@ -32,8 +33,9 @@ outdir = OUT_DIR
 
 # %%
 # key stages 1-3
-for i in range(1, 4):
-    stages_url = f"{base_url}key-stages/ks{i}/subjects"
+for i in range(1, 3):
+    ks_slug = f"ks{i}"
+    stages_url = f"{base_url}key-stages/{ks_slug}/subjects"
     print(stages_url)
 
     response = requests.get(stages_url, headers=headers)
@@ -42,18 +44,22 @@ for i in range(1, 4):
 
         soup = BSoup(response.text, "lxml")
 
-        # subjects
-        access_urls = pageWebContainers(soup, "ABC")
+        script_tag = soup.find("script", {"id": "__NEXT_DATA__"})
+        index_data = json.loads(script_tag.string)
+        with open(outdir / f"{ks_slug}-subjects.json", "w") as file:
+            json.dump(index_data, file, indent=2)
 
-        for subject_dict in access_urls:
-            subject = list(subject_dict.keys())[0]
-            url = subject_dict[subject]
-            subject_url = "https://www.thenational.academy" + url
+        # subjects
+        for subject in index_data["props"]["pageProps"]["subjects"]:
+            if ks_slug=="ks4" and subject["data"]["isNew"]:
+                # new ks4 are by exam board and use the loop below
+                # old ks4 are the same as others
+                continue
+            programme_slug = subject["data"]["programmeSlug"]
+            subject_url = f"https://www.thenational.academy/teachers/programmes/{programme_slug}/units"
             response = requests.get(subject_url, headers=headers)
             soup = BSoup(response.text, "lxml")
-
             script_tag = soup.find("script", {"id": "__NEXT_DATA__"})
-
             index_data = json.loads(script_tag.string)
 
             subject_folder = index_data["props"]["pageProps"]["curriculumData"]["programmeSlug"]
@@ -66,7 +72,7 @@ for i in range(1, 4):
             units_to_get = [
                 u[0]
                 for u in index_data["props"]["pageProps"]["curriculumData"]["units"]
-                if u[0]["cohort"] == "2023-2024"
+                #if u[0]["cohort"] == "2023-2024"
             ]  # cohort
 
             programmes_url = (
@@ -107,6 +113,9 @@ for i in range(1, 4):
                     ]
 
                     for k, url in enumerate(lesson_urls):
+                        if lessons_to_get[k]["expired"] == True:
+                            # lesson not available
+                            continue
                         response = requests.get(url, headers=headers)
 
                         soup = BSoup(response.text, "lxml")
@@ -137,13 +146,15 @@ if response.status_code == 200:
 
     soup = BSoup(response.text, "lxml")
 
-    # subjects
-    access_urls = pageWebContainers(soup, "ABC")
+    script_tag = soup.find("script", {"id": "__NEXT_DATA__"})
+    index_data = json.loads(script_tag.string)
+    with open(outdir / f"{ks_slug}-subjects.json", "w") as file:
+        json.dump(index_data, file, indent=2)
 
-    for subject_dict in access_urls:
-        subject = list(subject_dict.keys())[0]
-        url = subject_dict[subject]
-        subject_url = "https://www.thenational.academy" + url
+    # subjects
+    for subject in index_data["props"]["pageProps"]["subjects"]:
+        programme_slug = subject["data"]["programmeSlug"]
+        subject_url = f"https://www.thenational.academy/teachers/programmes/{programme_slug}/units"
         response = requests.get(subject_url, headers=headers)
         soup = BSoup(response.text, "lxml")
 
@@ -167,7 +178,7 @@ if response.status_code == 200:
             units_to_get = [
                 u[0]
                 for u in index_data["props"]["pageProps"]["curriculumData"]["units"]
-                if u[0]["cohort"] == "2023-2024"
+                #if u[0]["cohort"] == "2023-2024"
             ]  # cohort
 
             unit_urls = [f"{programme_url}/units/{un['slug']}/lessons" for un in units_to_get]
@@ -205,6 +216,9 @@ if response.status_code == 200:
                     ]
 
                     for k, url in enumerate(lesson_urls):
+                        if lessons_to_get[k]["expired"] == True:
+                            # lesson not available
+                            continue
                         response = requests.get(url, headers=headers)
 
                         soup = BSoup(response.text, "lxml")
