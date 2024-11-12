@@ -1655,18 +1655,18 @@ packages:
   url: https://files.pythonhosted.org/packages/86/25/b7df779d6c015416cccb0cb5e9e69678c4f6c5e762abefdf41c1cb1d3958/anthropic-0.26.1-py3-none-any.whl
   sha256: 2812b9b250b551ed8a1f0a7e6ae3f005654098994f45ebca5b5808bd154c9628
   requires_dist:
-  - anyio<5,>=3.5.0
+  - anyio>=3.5.0,<5
   - cached-property ; python_full_version < '3.8'
-  - distro<2,>=1.7.0
-  - httpx<1,>=0.23.0
-  - jiter<1,>=0.1.0
-  - pydantic<3,>=1.9.0
+  - distro>=1.7.0,<2
+  - httpx>=0.23.0,<1
+  - jiter>=0.1.0,<1
+  - pydantic>=1.9.0,<3
   - sniffio
   - tokenizers>=0.13.0
-  - typing-extensions<5,>=4.7
+  - typing-extensions>=4.7,<5
   - boto3>=1.28.57 ; extra == 'bedrock'
   - botocore>=1.31.57 ; extra == 'bedrock'
-  - google-auth<3,>=2 ; extra == 'vertex'
+  - google-auth>=2,<3 ; extra == 'vertex'
   requires_python: '>=3.7'
 - kind: conda
   name: antlr-python-runtime
@@ -4791,17 +4791,17 @@ packages:
   url: https://files.pythonhosted.org/packages/e7/00/85c22f7f73fa2e88dfbf0e1f63c565386ba40e0264b59c8a4362ae27c9fc/google_auth-2.32.0-py2.py3-none-any.whl
   sha256: 53326ea2ebec768070a94bee4e1b9194c9646ea0c2bd72422785bd0f9abfad7b
   requires_dist:
-  - cachetools<6.0,>=2.0.0
+  - cachetools>=2.0.0,<6.0
   - pyasn1-modules>=0.2.1
-  - rsa<5,>=3.1.4
-  - aiohttp<4.0.0.dev0,>=3.6.2 ; extra == 'aiohttp'
-  - requests<3.0.0.dev0,>=2.20.0 ; extra == 'aiohttp'
+  - rsa>=3.1.4,<5
+  - aiohttp>=3.6.2,<4.0.0.dev0 ; extra == 'aiohttp'
+  - requests>=2.20.0,<3.0.0.dev0 ; extra == 'aiohttp'
   - cryptography==36.0.2 ; extra == 'enterprise-cert'
   - pyopenssl==22.0.0 ; extra == 'enterprise-cert'
   - pyopenssl>=20.0.0 ; extra == 'pyopenssl'
   - cryptography>=38.0.3 ; extra == 'pyopenssl'
   - pyu2f>=0.1.5 ; extra == 'reauth'
-  - requests<3.0.0.dev0,>=2.20.0 ; extra == 'requests'
+  - requests>=2.20.0,<3.0.0.dev0 ; extra == 'requests'
   requires_python: '>=3.7'
 - kind: conda
   name: grandalf
@@ -5372,7 +5372,7 @@ packages:
   - aiohttp ; extra == 'all'
   - jedi ; extra == 'all'
   - jinja2 ; extra == 'all'
-  - pytest<8.2.2,>=8.1.1 ; extra == 'all'
+  - pytest>=8.1.1,<8.2.2 ; extra == 'all'
   - pytest-cov ; extra == 'all'
   - pytest-env ; extra == 'all'
   - pytest-xdist ; extra == 'all'
@@ -5401,7 +5401,7 @@ packages:
   - aiohttp ; extra == 'dev'
   - jedi ; extra == 'dev'
   - jinja2 ; extra == 'dev'
-  - pytest<8.2.2,>=8.1.1 ; extra == 'dev'
+  - pytest>=8.1.1,<8.2.2 ; extra == 'dev'
   - pytest-cov ; extra == 'dev'
   - pytest-env ; extra == 'dev'
   - pytest-xdist ; extra == 'dev'
@@ -5442,7 +5442,7 @@ packages:
   - aiohttp ; extra == 'testing'
   - jedi ; extra == 'testing'
   - jinja2 ; extra == 'testing'
-  - pytest<8.2.2,>=8.1.1 ; extra == 'testing'
+  - pytest>=8.1.1,<8.2.2 ; extra == 'testing'
   - pytest-cov ; extra == 'testing'
   - pytest-env ; extra == 'testing'
   - pytest-xdist ; extra == 'testing'
@@ -12097,7 +12097,7 @@ packages:
   url: https://files.pythonhosted.org/packages/77/89/bc88a6711935ba795a679ea6ebee07e128050d6382eaa35a0a47c8032bdc/pyasn1_modules-0.4.1-py3-none-any.whl
   sha256: 49bfa96b45a292b711e986f222502c1c9a5e1f4e568fc30e2574a6c7d07838fd
   requires_dist:
-  - pyasn1<0.7.0,>=0.4.6
+  - pyasn1>=0.4.6,<0.7.0
   requires_python: '>=3.8'
 - kind: conda
   name: pycairo
@@ -12770,7 +12770,7 @@ packages:
   requires_dist:
   - iniconfig
   - packaging
-  - pluggy<2,>=1.5
+  - pluggy>=1.5,<2
   - exceptiongroup>=1.0.0rc8 ; python_full_version < '3.11'
   - tomli>=1 ; python_full_version < '3.11'
   - colorama ; sys_platform == 'win32'
