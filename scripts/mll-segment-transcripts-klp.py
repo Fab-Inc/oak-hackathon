@@ -13,17 +13,15 @@ import regex as re
 import string
 
 import oakhack as oh
-
 from dotenv import load_dotenv
-
 load_dotenv(override=True)
 import openai
 from openai import OpenAI
-
 from pydantic import BaseModel, Field
 from typing import List, Dict, Literal, Optional
-
 from oakhack.embeddings import get_embeddings
+
+from mll_klps_flagging_visu import generate_colored_html, generate_colored_html_3
 
 # %%
 lessons, l_df = oh.utils.load_oak_lessons_with_df()
@@ -223,6 +221,23 @@ transcript_sent_embed.head()
 acc = (transcript_sent_embed['index'] == transcript_sent_embed['index llm']).mean()
 print(f"Accuracy: {acc:.2f}")
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # %%
 ###########################
 ###########################
@@ -233,6 +248,11 @@ print(f"Accuracy: {acc:.2f}")
 # - list of klps
 # - transcript
 
+# %%
+lessons, l_df = oh.utils.load_oak_lessons_with_df()
+flat_klp = oh.utils.extract_klp(lessons)
+
+# %%
 len_klps = []
 for i, lesson in enumerate(lessons):
     klps = lesson['keyLearningPoints']
@@ -244,7 +264,15 @@ for i, lesson in enumerate(lessons):
     len_klps.append(len(klps_list))
     break
 
-# test for the first lesson
+# %%
+# select mamually one lesson
+lesson_idx = 0
+selected_lesson = lessons[lesson_idx]
+klps = selected_lesson['keyLearningPoints']
+transcript_sentences = selected_lesson['transcriptSentences']
+klps_list = []
+for klp in klps:
+    klps_list.append(klp['keyLearningPoint'])
 
 print(f"Number of KLP: {len(klps_list)}")
 print(f"Number of sentences in transcript: {len(transcript_sentences)}")
@@ -252,10 +280,11 @@ print(f"Number of sentences in transcript: {len(transcript_sentences)}")
 print(klps_list)
 print(transcript_sentences)
 
+
 # %%
 klp_embeddings = get_embeddings(klps_list)
 transcript_embeddings = get_embeddings(transcript_sentences)
-# %%
+
 similarities = cosine_similarity(transcript_embeddings, klp_embeddings)
 print(similarities.shape)
 
@@ -269,16 +298,16 @@ def assign_sentence_indices(similarity_matrix, threshold):
         if max_score > threshold:
             assigned_indices.append(int(max_index) + 1) # + 1 to match the real klp indices
         else:
-            assigned_indices.append(None)  # No valid index if the max score is below the threshold
+            assigned_indices.append(0)  # No valid index if the max score is below the threshold
 
     return assigned_indices
 
-sentence_assignments = assign_sentence_indices(similarities, threshold=0.7)
+sentence_assignments = assign_sentence_indices(similarities, threshold=0.4)
 print(pd.Series(sentence_assignments).value_counts())
 
-# %%
+
 klp_transcript = pd.DataFrame({
-    "abstract sentence": transcript_sentences,
+    "transcript sentence": transcript_sentences,
     "klp assigned idx": sentence_assignments,
     #"klp assigned": None,
 })
@@ -286,12 +315,72 @@ klp_transcript = pd.DataFrame({
 print(klp_transcript.shape)
 print(klp_transcript['klp assigned idx'].value_counts())
 klp_transcript.head()
-# %%
-for idx in klp_transcript['klp assigned idx'].value_counts().index:
-    print(f"KLP {int(idx)}:\n{klps_list[int(idx)-1]}\n\nSentences in transcript linked to this KLP:\n-----")
-    for sent in klp_transcript[klp_transcript['klp assigned idx'] == idx]['abstract sentence']:
-        print(sent)
-    print("-----\n\n")
+
+#for idx in klp_transcript['klp assigned idx'].value_counts().index:
+#    print(f"KLP {int(idx)}:\n{klps_list[int(idx)-1]}\n\nSentences in transcript linked to this KLP:\n-----")
+#    for sent in klp_transcript[klp_transcript['klp assigned idx'] == idx]['transcript sentence']:
+#        print(sent)
+#    print("-----\n\n")
 
 
 # %%
+# Generate the HTML file
+generate_colored_html(klp_transcript, klps_list, output_file=f'lesson_{lesson_idx}_klp_flagged.html')
+
+# %%
+### with sliding window and majority voting
+
+step = 1
+chunk_size = 12
+
+klp_embeddings = get_embeddings(klps_list)
+all_chunks = []
+
+for sents in zip(*[transcript_sentences[i:len(transcript_sentences) - chunk_size + i + 1] for i in range(chunk_size)]):
+
+    paragraph = " ".join(sents)
+    all_chunks.append(paragraph)
+
+print(f"Number of sentences: {len(transcript_sentences)}")
+print(f"Number of paragraphs: {len(all_chunks)}")
+# %%
+transcript_embeddings = get_embeddings(all_chunks)
+similarities = cosine_similarity(transcript_embeddings, klp_embeddings)
+print(similarities.shape)
+
+# %%
+#max_index = np.argmax(similarities, axis = 1) # without threshold
+max_index = assign_sentence_indices(similarities, threshold=0.5)
+
+print(max_index)
+print(len(max_index))
+
+#npara = max_index.shape[0]
+npara = len(max_index)
+nsentences = len(transcript_sentences)
+
+paraidx = [list(range(i, i+chunk_size)) for i in range(npara)]
+
+sentence_votes = np.zeros((nsentences, len(klps_list) + 1))
+
+for i, sidx in enumerate(paraidx):
+    sentence_votes[sidx, max_index[i]] += 1
+
+sentence_winner = np.argmax(sentence_votes, axis=1)
+
+print(sentence_winner)
+
+
+klp_transcript = pd.DataFrame({
+    "transcript sentence": transcript_sentences,
+    "klp assigned idx": sentence_winner,
+    #"klp assigned": None,
+})
+print(klp_transcript.shape)
+print(klp_transcript['klp assigned idx'].value_counts())
+klp_transcript.head()
+
+
+generate_colored_html_3(klp_transcript, klps_list, klp_to_color = 2, output_file=f'lesson_{lesson_idx}_klp_flagged_new.html')
+
+
