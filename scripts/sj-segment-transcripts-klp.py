@@ -1,6 +1,7 @@
 # %%
 # Imports and function definitions
 import oakhack as oh
+from scipy.stats import mode
 from oakhack.embeddings import get_embeddings
 
 from dotenv import load_dotenv
@@ -18,7 +19,7 @@ def load_lessons():
     return lessons, l_df, flat_klp
 
 
-def get_klps_and_transcripts(lessons: list) -> dict:
+def get_klps_and_transcripts(lessons: list, window_size: int = 1) -> dict:
     result = {}
     text_elements = []
     for lesson in lessons:
@@ -31,11 +32,26 @@ def get_klps_and_transcripts(lessons: list) -> dict:
 
         klps = [klp["keyLearningPoint"] for klp in lesson["keyLearningPoints"]]
         text_elements.extend(klps)
-        text_elements.extend(transcript)
-        result[lesson["lessonTitle"]] = {
-            "klps": len(klps),
-            "transcript": len(transcript),
-        }
+        if window_size > 1:
+            original_num_transcript_sentences = len(transcript)
+            transcript = sliding_window(transcript, window_size)
+            text_elements.extend(transcript)
+        else:
+            text_elements.extend(transcript)
+
+        num_transcript_sentences = len(transcript)
+
+        if window_size > 1:
+            result[lesson["lessonTitle"]] = {
+                "klps": len(klps),
+                "transcript": num_transcript_sentences,
+                "original_num_transcript_sentences": original_num_transcript_sentences,
+            }
+        else:
+            result[lesson["lessonTitle"]] = {
+                "klps": len(klps),
+                "transcript": num_transcript_sentences,
+            }
     return result, text_elements
 
 
@@ -81,26 +97,55 @@ def assign_embeddings_to_lessons(
         lesson_klps_transcripts[key] = value
 
 
+def sliding_window(lst: list, window_size: int = 1):
+    result = []
+    for i in range(len(lst)):
+        result.append(" ".join(lst[i : i + window_size]))
+    return result
+
+
+def count_votes(lesson: dict, final_assignments: np.ndarray, window_size: int):
+    original_num_sentences = lesson["original_num_transcript_sentences"]
+    votes = [[] for _ in range(original_num_sentences)]
+
+    for idx in range(original_num_sentences):
+        if idx == len(final_assignments):
+            break
+        for i in range(window_size):
+            if (idx + i) <= len(final_assignments) - 1:
+                votes[idx + i].append(final_assignments[idx + i])
+        votes[idx] = mode(votes[idx]).mode
+
+    votes = np.array(votes)
+    return votes
+
+
 # %%
 # Load in data.
+window_size = 3
 s = time()
 lessons, l_df = oh.utils.load_oak_lessons_with_df()
-lessons = lessons[0:2]
-lesson_klps_transcripts, text_elements = get_klps_and_transcripts(lessons)
+lessons = lessons[0:10]
 l = time()
+
 # %%
 # Process data
 s = time()
-text_emebeddings = get_embeddings(text_elements)
-assign_embeddings_to_lessons(lesson_klps_transcripts, text_emebeddings)
-m = time()
+lesson_klps_transcripts, text_elements = get_klps_and_transcripts(
+    lessons, window_size=window_size
+)
+p = time()
+
+# %%
+# Get embeddings
+s = time()
+text_embeddings = get_embeddings(text_elements)
+assign_embeddings_to_lessons(lesson_klps_transcripts, text_embeddings)
+e = time()
 
 # %%
 # Create a new dictionary from the sampled keys
 get_similarities(lesson_klps_transcripts)
-e = time()
-embedding_time = m - s
-load_time = e - s
 
 # %%
 # Classify transcripts
@@ -108,9 +153,15 @@ s = time()
 for lesson in lesson_klps_transcripts:
     similarities = lesson_klps_transcripts[lesson]["similarities"]
     final_assignments = assign_sentence_indices(similarities)
+    if window_size > 1:
+        final_assignments = count_votes(
+            lesson_klps_transcripts[lesson], final_assignments, window_size
+        )
     lesson_klps_transcripts[lesson]["assignments"] = final_assignments
+    break
 
 e = time()
 process_time = e - s
 
 # %%
+# Apply window
