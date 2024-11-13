@@ -133,4 +133,4 @@ for p in tqdm(list(programmes)):
         score_array.append(normed_scores)
     bm25_q_klp[p] = np.array(score_array)
 
-np.savez("./data/similarity/bm25-q-klp-by-programme", bm25_q_klp, allow_pickle=True)
+np.savez("./data/similarity/bm25-q-klp-by-programme", **bm25_q_klp, allow_pickle=True)

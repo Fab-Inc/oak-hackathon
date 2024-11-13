@@ -20,10 +20,8 @@ klpA = oh.embeddings.get_klp_BM25(flat_klp)
 klpA = klpA / klpA.max(axis=1)
 
 # %%#
-### load klp embeddinds and calculate scores
-klp_embs = oh.load_embeddings("klp_embeddings_batch_size3000_*.npy")
-
-klpB = klp_embs @ klp_embs.T
+### load klp embeddings
+klp_embs = oh.load_embeddings("klp_embeddings_batch_size3000_*.npy").astype(float)
 
 # %%
 ### filter klp by programme
@@ -36,7 +34,10 @@ klp_programme_index = [
 klppi_ix = np.ix_(klp_programme_index, klp_programme_index)
 
 klpA_programme = klpA[klppi_ix]
-klpB_programme = klpB[klppi_ix]
+
+klp_embs_programme = klp_embs[klp_programme_index]
+klpB_programme = klp_embs_programme @ klp_embs_programme.T
+
 flat_klp_programme = {
     key: klp
     for i, (key, klp) in enumerate(flat_klp.items())
@@ -89,13 +90,18 @@ klp_adj = klpA_masked * (1 - embwt) + klpB_masked * embwt
 klp_adj = np.minimum(klp_adj * (klp_adj > cutoff), 1)
 
 # create graph and set node attributes
-G = nx.from_numpy_array(klp_adj.T, create_using=nx.DiGraph)
+G = nx.from_numpy_array(klp_adj.T, create_using=nx.Graph)
 nx.set_node_attributes(G, {i: klp for i, klp in enumerate(flat_klp_programme.values())})
 # create edge length attribute as complement of weight
 # this is to make shortest path calculations make sense
 for *_, attr_dict in G.edges(data=True):
     attr_dict["length"] = 1 - attr_dict["weight"]
 
+# %%
+
+nx.draw(G)
+
+# %%
 # get shortests paths between all pairs of nodes in the graph
 spaths = dict(nx.all_pairs_dijkstra(G, weight="length"))
 
@@ -109,3 +115,5 @@ for nodeidx, (lengths, paths) in spaths.items():
             length = lengths[targetnode]
             # print((nodeidx, targetnode), path)
             print(length)
+
+# %%
