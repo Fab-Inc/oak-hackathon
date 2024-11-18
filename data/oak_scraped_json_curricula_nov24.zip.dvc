@@ -1,0 +1,5 @@
+outs:
+- md5: 4308f856aae40cd34750f6dd50a9c52a
+  size: 1473019
+  hash: md5
+  path: oak_scraped_json_curricula_nov24.zip
